@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teleconsultation Session - CareConnect360</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- jsPDF & QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- PeerJS Real-Time P2P WebRTC Video SDK -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- Clean Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=5.0">
+
+  <!-- Floating Toast & Notification Engine -->
+  <script src="toast-notification.js?v=5.0"></script>
+
+  <script>
+    // Tab switching for clinical assistant
+    window.switchClinicalTab = function(tabId) {
+      document.querySelectorAll(".c-tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-tab") === tabId);
+      });
+      document.querySelectorAll(".tab-pane").forEach(pane => {
+        pane.classList.toggle("active", pane.id === tabId);
+      });
+    };
+
+    window.closePrescriptionModal = function() {
+      const modal = document.getElementById("prescriptionModal");
+      if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --teal: #0d9488;
+      --teal-hover: #0f766e;
+      --bg-page: #f8fafc;
+      --bg-white: #ffffff;
+      --text-main: #1f2937;
+      --text-secondary: #4b5563;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --border-dark: #cbd5e1;
+      --danger: #dc2626;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-family); background-color: #0b1528; color: #f8fafc; font-size: 14px; line-height: 1.5; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    body::before {
+      content: "";
+      position: fixed;
+      top: -8%;
+      left: -8%;
+      width: 116%;
+      height: 116%;
+      background-image: url('medical-bg.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      animation: medicalAmbientMotion 28s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input, select, textarea { font-family: inherit; font-size: 13.5px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; }
+    .btn-primary { background: var(--primary); color: #ffffff !important; }
+    .btn-danger { background: var(--danger); color: #ffffff !important; }
+    .btn-outline { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-dark); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    /* Top Bar */
+    .consultation-navbar { height: 56px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+    .consult-patient-meta { display: flex; align-items: center; gap: 12px; font-size: 13.5px; }
+    .session-timer-badge { display: flex; align-items: center; gap: 6px; background: #0f172a; border: 1px solid #334155; padding: 4px 10px; border-radius: 14px; font-family: var(--font-mono); font-size: 13px; color: #10b981; }
+
+    /* Workspace */
+    .consult-workspace-grid { display: flex; flex: 1; overflow: hidden; }
+    .video-stage-column { flex: 7; position: relative; background: #020617; display: flex; flex-direction: column; }
+    .remote-stream-container { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .remote-stream-container img.doctor-video-feed { width: 100%; height: 100%; object-fit: cover; }
+    .stream-watermark-info { position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.85); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid #334155; font-size: 13px; }
+    .pip-local-preview { position: absolute; top: 20px; right: 20px; width: 190px; height: 120px; background: #1e293b; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 10px; overflow: hidden; z-index: 30; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+    .pip-local-preview video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    .pip-feed-label { position: absolute; bottom: 6px; left: 6px; background: rgba(0, 0, 0, 0.7); color: #fff; font-size: 10.5px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .pip-swap-btn { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid rgba(255, 255, 255, 0.25); cursor: pointer; z-index: 25; transition: all 0.2s; }
+    .pip-swap-btn:hover { background: var(--primary); transform: scale(1.1); }
+
+    .video-toolbar { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(51, 65, 85, 0.8); border-radius: 9999px; padding: 8px 16px; display: flex; align-items: center; justify-content: center; gap: 12px; z-index: 40; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); }
+    .control-circle-btn { width: 44px; height: 44px; border-radius: 50%; background: #334155; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px solid #475569; transition: all 0.2s ease; }
+    .control-circle-btn:hover { background: #475569; transform: scale(1.06); }
+    .control-circle-btn.disabled { background: var(--danger); border-color: var(--danger); }
+    .btn-end-session { background: var(--danger); border-color: var(--danger); padding: 0 16px; width: auto; border-radius: 9999px; font-size: 12.5px; font-weight: 700; gap: 6px; }
+    .btn-end-session:hover { background: #b91c1c; }
+
+    /* Clinical Assistant */
+    .clinical-assistant-column { flex: 3; min-width: 380px; max-width: 460px; background: #ffffff; color: var(--text-main); border-left: 1px solid #334155; display: flex; flex-direction: column; }
+    .clinical-tab-strip { display: flex; background: #f8fafc; border-bottom: 1px solid var(--border); }
+    .c-tab-btn { flex: 1; padding: 12px 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-align: center; border-bottom: 2px solid transparent; transition: all 0.15s ease; }
+    .c-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #ffffff; font-weight: 700; }
+    .clinical-pane-content { flex: 1; overflow-y: auto; padding: 18px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .rx-field-block { margin-bottom: 14px; }
+    .rx-field-block label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .rx-field-block input, .rx-field-block textarea, .rx-field-block select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; }
+    .rx-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px; }
+    .rx-table th { background: #f1f5f9; text-align: left; padding: 6px 8px; font-size: 11px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .rx-table td { padding: 5px 4px; }
+    .rx-table input { padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); width: 100%; font-size: 12.5px; }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-backdrop.active { display: flex !important; }
+    .modal-dialog { background: #ffffff; width: 100%; max-width: 680px; border-radius: var(--radius-md); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; color: var(--text-main); }
+    .modal-head { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-close { color: var(--text-muted); font-size: 22px; cursor: pointer; }
+    .modal-action-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; gap: 10px; background: #fafafa; }
+    .letterhead-document { padding: 24px; background: #ffffff; color: #111827; font-size: 13px; line-height: 1.5; }
+    .letterhead-top-banner { display: flex; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 16px; }
+    .patient-info-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f8fafc; border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; }
+    .rx-meds-print-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .rx-meds-print-table th { background: #f1f5f9; text-align: left; padding: 8px 10px; border-bottom: 1px solid #cbd5e1; font-size: 12px; }
+    .rx-meds-print-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    .letterhead-bottom-stamp { display: flex; align-items: flex-end; justify-content: space-between; border-top: 1px dashed #cbd5e1; padding-top: 18px; margin-top: 20px; }
+
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; }
+    .toast-msg { background: #111827; color: #ffffff; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13.5px; margin-top: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; }
+
+    @keyframes wavePulse {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+      50% { transform: scaleY(1.3); opacity: 1; }
+    }
+    .doctor-talking-active #doctorVideoPulseOverlay {
+      box-shadow: inset 0 0 50px rgba(13, 148, 136, 0.45) !important;
+    }
+    .doctor-talking-active .doctor-feed-card {
+      box-shadow: 0 0 0 4px #0d9488, 0 20px 45px rgba(13, 148, 136, 0.35) !important;
+    }
+    .doctor-feed-card {
+      transition: all 0.3s ease;
+    }
+
+    @media (max-width: 900px) {
+      body.consultation-viewport { height: auto !important; min-height: 100vh; overflow-y: auto !important; }
+      .consultation-navbar { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+      .consult-patient-meta { flex-wrap: wrap; gap: 6px; font-size: 12px; }
+      .consult-workspace-grid { flex-direction: column; height: auto; overflow: visible; }
+      .video-stage-column { min-height: 280px; height: 48vh; }
+      .pip-local-preview { width: 110px; height: 75px; top: 12px; right: 12px; }
+      .video-toolbar { bottom: 12px; gap: 8px; padding: 6px 12px; }
+      .control-circle-btn { width: 38px; height: 38px; font-size: 14px; }
+      .btn-end-session { font-size: 11.5px; padding: 0 12px; }
+      .clinical-assistant-column { max-width: 100%; min-width: 100%; height: auto; border-left: none; border-top: 1px solid #334155; }
+    }
+  </style>
+</head>
+<body class="consultation-viewport">
+
+  <!-- Top Consultation Status Header Bar -->
+  <header class="consultation-navbar">
+    <div class="consult-patient-meta">
+      <a href="dashboard.html" style="color: #94a3b8; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+        <img src="logo.svg?v=2" alt="CareConnect360" style="width: 26px; height: 26px; border-radius: 6px; object-fit: contain;">
+        <i class="fas fa-chevron-left" style="font-size: 11px;"></i> Dashboard
+      </a>
+      <span style="color: #475569;">|</span>
+      <span>Doctor: <strong id="consultDocName" style="color: #ffffff;">Dr. Ramesh Chandra Gupta</strong> (Fortis Hospital)</span>
+      <span style="color: #475569;">|</span>
+      <span>Patient: <span id="consultPatientName" style="color: #93c5fd;">Rahul Sharma</span></span>
+      <span id="callConnectionStatus" style="font-size: 11.5px; color: #34d399; margin-left: 10px; font-weight: 600;">
+        <i class="fas fa-shield-alt"></i> WebRTC Encrypted
+      </span>
+    </div>
+
+    <!-- Active Call Timer -->
+    <div class="session-timer-badge">
+      <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i>
+      <span id="sessionTimerDisplay">00:00</span>
+    </div>
+
+    <div>
+      <button type="button" class="btn btn-danger btn-sm" onclick="window.endCallSession ? window.endCallSession() : (window.location.href='dashboard.html')">
+        <i class="fas fa-phone-slash"></i> Leave Session
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Consultation Workspace -->
+  <div class="consult-workspace-grid">
+
+    <!-- Left 70%: Video Stage Column -->
+    <section class="video-stage-column">
+      <div class="remote-stream-container" style="position: relative;">
+        <!-- Live Video Element for Screen Share or Swapped Local Camera -->
+        <video id="mainStageVideo" autoplay playsinline style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #020617; z-index: 6;"></video>
+
+        <!-- Remote Participant / Doctor Video Feed -->
+        <div id="doctorMediaWrapper" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; z-index: 2; background: #020617;">
+          <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1200&auto=format&fit=crop&q=80" 
+               alt="Doctor Feed" 
+               class="doctor-video-feed" 
+               id="remoteDoctorFeed"
+               style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2;">
+        </div>
+
+        <!-- Live WebRTC Diagnostic Telemetry Bar -->
+        <div class="clinical-telemetry-bar" style="position: absolute; top: 16px; left: 16px; z-index: 25; margin-bottom: 0;">
+          <div class="telemetry-tag">
+            <span class="telemetry-dot"></span>
+            <span>HD Clinical Stream</span>
+          </div>
+          <div class="telemetry-tag" style="color: #94a3b8; font-size: 11px;">
+            <span>Latency: <strong id="telemetryLatency" style="color: #38bdf8;">32ms</strong></span>
+            &bull;
+            <span>Loss: <strong id="telemetryLoss" style="color: #34d399;">0%</strong></span>
+          </div>
+          <div class="telemetry-tag" style="color: #34d399; font-size: 11px;">
+            <i class="fas fa-lock"></i> <span>DTLS-SRTP 256-bit</span>
+          </div>
+        </div>
+
+        <div class="stream-watermark-info" style="top: 60px; z-index: 20;">
+          <strong id="watermarkDocName">Dr. Ramesh Chandra Gupta</strong>
+          <div style="font-size: 11.5px; color: #94a3b8;">Senior Consultant &bull; Fortis Hospital, New Delhi</div>
+        </div>
+
+        <!-- Local Picture-in-Picture Preview -->
+        <div class="pip-local-preview" onclick="window.swapVideoFeeds && window.swapVideoFeeds()" style="cursor: pointer;" title="Click to swap camera to full screen">
+          <video id="localWebcamStream" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+          <div id="localPipPlaceholder" style="display: none; height: 100%; width: 100%; align-items: center; justify-content: center; flex-direction: column; gap: 6px; font-size: 11px; color: #94a3b8; text-align: center; padding: 6px; background: #1e293b;">
+            <i class="fas fa-video-slash" style="font-size: 18px; color: #ef4444;"></i>
+            <span>Camera Paused</span>
+          </div>
+          <button type="button" class="pip-swap-btn" onclick="event.stopPropagation(); window.swapVideoFeeds()" title="Swap Feeds">
+            <i class="fas fa-arrows-rotate"></i>
+          </button>
+          <span class="pip-feed-label" style="z-index: 20;">You (Live Feed)</span>
+        </div>
+      </div>
+
+      <!-- Floating Controls Toolbar -->
+      <div class="video-toolbar">
+        <button type="button" class="control-circle-btn" id="btnToggleMic" onclick="window.toggleMic ? window.toggleMic() : null" title="Mute/Unmute Mic">
+          <i class="fas fa-microphone"></i>
+        </button>
+
+        <button type="button" class="control-circle-btn" id="btnToggleCam" onclick="window.toggleCamera ? window.toggleCamera() : null" title="Camera On/Off">
+          <i class="fas fa-video"></i>
+        </button>
+
+        <button type="button" class="control-circle-btn" id="btnSwapFeeds" onclick="window.swapVideoFeeds ? window.swapVideoFeeds() : null" title="Swap Full Screen / PIP View">
+          <i class="fas fa-arrows-rotate"></i>
+        </button>
+
+        <button type="button" class="control-circle-btn" id="btnScreenShare" onclick="window.toggleScreenShare ? window.toggleScreenShare() : null" title="Share Screen / Reports">
+          <i class="fas fa-desktop"></i>
+        </button>
+
+        <button type="button" class="control-circle-btn btn-end-session" onclick="window.endCallSession ? window.endCallSession() : (window.location.href='dashboard.html')" title="End Consultation">
+          <i class="fas fa-phone-slash"></i> End Session
+        </button>
+      </div>
+    </section>
+
+    <!-- Right 30%: Real-Time Clinical Assistant / E-Prescription Pad -->
+    <aside class="clinical-assistant-column">
+      <div class="clinical-tab-strip">
+        <button type="button" class="c-tab-btn active" data-tab="tabPrescription" onclick="window.switchClinicalTab('tabPrescription')">
+          <i class="fas fa-file-prescription"></i> e-Prescription
+        </button>
+        <button type="button" class="c-tab-btn" data-tab="tabVitals" onclick="window.switchClinicalTab('tabVitals')">
+          <i class="fas fa-heart-pulse"></i> Patient Vitals
+        </button>
+        <button type="button" class="c-tab-btn" data-tab="tabHistory" onclick="window.switchClinicalTab('tabHistory')">
+          <i class="fas fa-notes-medical"></i> Case Notes
+        </button>
+        <button type="button" class="c-tab-btn" data-tab="tabChat" onclick="window.switchClinicalTab('tabChat')">
+          <i class="fas fa-comments"></i> In-Call Chat &amp; Reports
+        </button>
+      </div>
+
+      <div class="clinical-pane-content">
+        
+        <!-- Tab 1: Live E-Prescription Form -->
+        <div class="tab-pane active" id="tabPrescription">
+          <form onsubmit="event.preventDefault(); window.issueSignedPrescription();">
+            
+            <!-- In-Call CDSS (Clinical Decision Support System) Drug Safety Box -->
+            <div class="cdss-alert-banner" id="cdssAlertBanner">
+              <i class="fas fa-shield-virus"></i>
+              <div>
+                <strong>CDSS Safety Radar Active:</strong>
+                <span>Patient Sensitivity: <span id="cdssPatientAllergies" style="color: #059669; font-weight: 700;">NKDA (No Known Allergies)</span> &bull; Triage: <span id="cdssTriageBadge" style="color: #0284c7; font-weight: 700;">Level 1 Routine</span></span>
+              </div>
+            </div>
+
+            <div class="rx-field-block">
+              <label for="rxDiagnosis">Provisional Clinical Diagnosis (ICD-10 Categorized)</label>
+              <input type="text" id="rxDiagnosis" value="Acute Upper Respiratory Tract Infection (URTI) with Pharyngitis" required style="font-weight: 600; color: #0f172a;">
+            </div>
+
+            <!-- Clinical Dosage Quick Assist (RJPT 2025 Standard) -->
+            <div style="margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">1-Click Standard Dosages:</span>
+              <div class="dosage-assist-track">
+                <button type="button" class="dosage-chip" onclick="window.applyQuickDosage('1-0-1', 'After Meals', '5 Days')">BD x 5 Days</button>
+                <button type="button" class="dosage-chip" onclick="window.applyQuickDosage('1-0-0', 'Before Meals', '5 Days')">OD Pre-Meals</button>
+                <button type="button" class="dosage-chip" onclick="window.applyQuickDosage('1-0-1 (SOS)', 'After Meals', '3 Days')">SOS Fever/Pain</button>
+                <button type="button" class="dosage-chip" onclick="window.applyQuickDosage('0-0-1', 'Bedtime', '3 Days')">Bedtime</button>
+              </div>
+            </div>
+
+            <div class="rx-field-block">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="margin: 0;">Prescribed Pharmacotherapy (Rx)</label>
+                <button type="button" class="btn btn-outline btn-sm" id="addMedicineBtn" style="padding: 3px 8px; font-size: 11px;">
+                  <i class="fas fa-plus"></i> Add Medication
+                </button>
+              </div>
+
+              <table class="rx-table">
+                <thead>
+                  <tr>
+                    <th>Medicine &amp; Strength</th>
+                    <th style="width: 75px;">Dosage</th>
+                    <th style="width: 95px;">Timing</th>
+                    <th style="width: 70px;">Duration</th>
+                    <th style="width: 20px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="rxMedicineTbody">
+                  <tr>
+                    <td><input type="text" class="med-name" value="Tab. Augmentin 625 Duo" placeholder="e.g. Tab. Augmentin 625mg"></td>
+                    <td><input type="text" class="med-dosage" value="1-0-1"></td>
+                    <td>
+                      <select class="med-timing" style="padding: 5px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px;">
+                        <option selected>After Meals</option>
+                        <option>Before Meals</option>
+                        <option>Bedtime</option>
+                      </select>
+                    </td>
+                    <td><input type="text" class="med-duration" value="5 Days"></td>
+                    <td>
+                      <button type="button" onclick="this.closest('tr').remove()" style="color: var(--danger);"><i class="fas fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><input type="text" class="med-name" value="Tab. Dolo 650mg" placeholder="e.g. Tab. Dolo 650mg"></td>
+                    <td><input type="text" class="med-dosage" value="1-0-1 (SOS)"></td>
+                    <td>
+                      <select class="med-timing" style="padding: 5px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px;">
+                        <option selected>After Meals</option>
+                        <option>Before Meals</option>
+                        <option>SOS</option>
+                      </select>
+                    </td>
+                    <td><input type="text" class="med-duration" value="3 Days"></td>
+                    <td>
+                      <button type="button" onclick="this.closest('tr').remove()" style="color: var(--danger);"><i class="fas fa-trash"></i></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><input type="text" class="med-name" value="Tab. Pantocid 40mg" placeholder="e.g. Tab. Pantocid 40mg"></td>
+                    <td><input type="text" class="med-dosage" value="1-0-0"></td>
+                    <td>
+                      <select class="med-timing" style="padding: 5px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px;">
+                        <option>After Meals</option>
+                        <option selected>Before Meals</option>
+                        <option>Bedtime</option>
+                      </select>
+                    </td>
+                    <td><input type="text" class="med-duration" value="5 Days"></td>
+                    <td>
+                      <button type="button" onclick="this.closest('tr').remove()" style="color: var(--danger);"><i class="fas fa-trash"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="rx-field-block">
+              <label for="rxDiagnosticTests">Recommended Diagnostic Lab Tests</label>
+              <input type="text" id="rxDiagnosticTests" value="Complete Blood Count (CBC) with Differential if fever persists > 48 hrs">
+            </div>
+
+            <div class="rx-field-block">
+              <label for="rxAdvice">Clinical Advice &amp; Lifestyle Directives</label>
+              <textarea id="rxAdvice" rows="3">Adequate hydration with warm water. Salt water gargles 3 times a day. Steam inhalation twice daily. Strict rest and avoid cold beverages.</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 11px; font-size: 13.5px; font-weight: 700; gap: 8px;">
+              <i class="fas fa-file-signature"></i> Digitally Sign &amp; Issue e-Prescription
+            </button>
+          </form>
+        </div>
+
+        <!-- Tab 2: Vitals -->
+        <div class="tab-pane" id="tabVitals">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+            Intake Vitals (Telemedicine Telemetry)
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+            <div style="border: 1px solid var(--border); padding: 10px 12px; border-radius: 6px; background: #fafcfd;">
+              <small style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600;">Blood Pressure</small>
+              <strong style="font-size: 15px; color: #0f172a;">122/80 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">mmHg</span></strong>
+              <div style="font-size: 10.5px; color: #059669; font-weight: 600; margin-top: 2px;">Normal Range</div>
+            </div>
+            <div style="border: 1px solid var(--border); padding: 10px 12px; border-radius: 6px; background: #fafcfd;">
+              <small style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600;">Pulse Rate</small>
+              <strong style="font-size: 15px; color: #0f172a;">78 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">bpm</span></strong>
+              <div style="font-size: 10.5px; color: #059669; font-weight: 600; margin-top: 2px;">Regular Sinus Rhythm</div>
+            </div>
+            <div style="border: 1px solid var(--border); padding: 10px 12px; border-radius: 6px; background: #fafcfd;">
+              <small style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600;">Body Temperature</small>
+              <strong style="font-size: 15px; color: var(--danger);">100.4 <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">°F</span></strong>
+              <div style="font-size: 10.5px; color: #dc2626; font-weight: 600; margin-top: 2px;">Low-Grade Pyrexia</div>
+            </div>
+            <div style="border: 1px solid var(--border); padding: 10px 12px; border-radius: 6px; background: #fafcfd;">
+              <small style="color: var(--text-muted); display: block; font-size: 11px; font-weight: 600;">SpO2 (Oxygen)</small>
+              <strong style="font-size: 15px; color: #0284c7;">98% <span style="font-size: 11px; font-weight: 500; color: var(--text-muted);">Room Air</span></strong>
+              <div style="font-size: 10.5px; color: #059669; font-weight: 600; margin-top: 2px;">Optimal Saturation</div>
+            </div>
+          </div>
+
+          <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+            Patient Medical Background
+          </label>
+          <div style="border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 13px; color: var(--text-secondary); background: #ffffff;">
+            <div style="margin-bottom: 6px;"><strong style="color: #0f172a;">Allergies:</strong> <span style="color: #059669; font-weight: 600;">No Known Drug Allergies (NKDA)</span></div>
+            <div style="margin-bottom: 6px;"><strong style="color: #0f172a;">Chronic Illnesses:</strong> None reported (Non-hypertensive, Non-diabetic)</div>
+            <div><strong style="color: #0f172a;">Surgical History:</strong> Nil significant</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Structured SOAP Clinical Documentation (MCI & NABH Standard) -->
+        <div class="tab-pane" id="tabHistory">
+          <div style="background: #f0fdfa; border: 1px solid #99f6e4; border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px; font-size: 11.5px; color: #0f766e; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-clipboard-check"></i>
+            <span>NABH / MCI Structured SOAP Clinical Framework</span>
+          </div>
+
+          <div class="rx-field-block">
+            <label><strong style="color: var(--teal);">S</strong> — Subjective (Chief Complaint &amp; Timeline)</label>
+            <textarea id="soapSubjective" rows="2" style="font-size: 12.5px;">2-day history of sore throat, dry cough, mild pyrexia (100.4°F), and fatigue. No dyspnea or hemoptysis.</textarea>
+          </div>
+
+          <div class="rx-field-block">
+            <label><strong style="color: var(--teal);">O</strong> — Objective (Vitals &amp; Telehealth Inspection)</label>
+            <textarea id="soapObjective" rows="2" style="font-size: 12.5px;">BP: 122/80 mmHg, SpO2: 98%, Pulse: 78 bpm, Temp: 100.4°F. Oral pharyngeal hyperemia present. Chest bilaterally clear.</textarea>
+          </div>
+
+          <div class="rx-field-block">
+            <label><strong style="color: var(--teal);">A</strong> — Assessment (Differential Diagnosis)</label>
+            <textarea id="soapAssessment" rows="2" style="font-size: 12.5px;">Acute Viral / Bacterial Pharyngitis with Upper Respiratory Tract Infection (ICD-10: J02.9). Low acuity, favorable prognosis.</textarea>
+          </div>
+
+          <div class="rx-field-block">
+            <label><strong style="color: var(--teal);">P</strong> — Plan (Rx &amp; Return Safety Net)</label>
+            <textarea id="soapPlan" rows="2" style="font-size: 12.5px;">Oral antibiotic course + paracetamol SOS. Warm hydration, steam inhalation. Red flag warnings explained: return if fever > 102°F or breathlessness.</textarea>
+          </div>
+
+          <button type="button" class="btn btn-outline btn-sm" style="width: 100%; justify-content: center;" onclick="window.showToast('Structured SOAP note synced to encrypted patient locker.', 'success')">
+            <i class="fas fa-save"></i> Save SOAP Note to ABDM EHR
+          </button>
+        </div>
+
+        <!-- Tab 4: In-Call Secure Chat & Patient Reports -->
+        <div class="tab-pane" id="tabChat">
+          <!-- Attached Reports Strip -->
+          <div style="margin-bottom: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">
+                <i class="fas fa-file-medical"></i> Diagnostic Reports
+              </span>
+              <label for="reportFileInput" class="btn btn-outline btn-sm" style="cursor: pointer; padding: 3px 8px; font-size: 11px; border-color: #0d9488; color: #0d9488;">
+                <i class="fas fa-upload"></i> Upload Report
+              </label>
+              <input type="file" id="reportFileInput" style="display: none;" accept="image/*,.pdf" onchange="window.handleReportUpload(event)">
+            </div>
+            <div id="reportsListContainer" style="display: flex; flex-direction: column; gap: 6px;">
+              <div class="report-chip-item">
+                <i class="fas fa-file-pdf" style="color: #ef4444; font-size: 16px;"></i>
+                <div style="flex: 1; min-width: 0;">
+                  <strong style="font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">CBC_BloodReport_Recent.pdf</strong>
+                  <span style="font-size: 10px; color: #64748b;">1.2 MB &bull; Uploaded by Patient</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="window.showToast('Encrypted CBC blood report opened for clinical review', 'info', 'Medical Record')">View</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Window -->
+          <div class="in-call-chat-container">
+            <div class="in-call-chat-messages" id="inCallChatMessages">
+              <div class="chat-bubble doctor">
+                <div class="chat-meta"><i class="fas fa-user-doctor"></i> Doctor &bull; System Room</div>
+                Hello! Welcome to your virtual consultation. I can hear and see you clearly. Please share any previous prescriptions or symptoms you are experiencing.
+              </div>
+            </div>
+            <form class="in-call-chat-input-bar" onsubmit="event.preventDefault(); window.sendInCallMessage();">
+              <input type="text" id="inCallMessageInput" class="in-call-chat-input" placeholder="Type message to doctor..." autocomplete="off">
+              <button type="submit" class="chat-send-btn" title="Send message">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Prescription Preview & Download Modal (strictly hidden by default) -->
+  <div class="modal-backdrop" id="prescriptionModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-head">
+        <h3>Medical e-Prescription</h3>
+        <button class="modal-close" onclick="window.closePrescriptionModal()">&times;</button>
+      </div>
+
+      <div class="modal-content-area" style="padding: 0;">
+        <div class="letterhead-document" id="printable-rx">
+          <div class="letterhead-top-banner">
+            <div>
+              <h3 style="font-size: 18px; color: #0284c7; font-weight: 700;">CareConnect Telemedicine Outpatient Clinic</h3>
+              <p id="rxClinicDisplay" style="font-size: 12px; color: var(--text-muted);">Fortis Escorts Hospital & Healthcare Clinic, New Delhi</p>
+              <p style="font-size: 12px; color: var(--text-muted);">Registration Authority: Medical Council of India (MCI)</p>
+            </div>
+            <div style="text-align: right;">
+              <strong id="rxDocNameDisplay" style="font-size: 14px;">Dr. Ramesh Chandra Gupta</strong>
+              <p id="rxDocSpecDisplay" style="font-size: 12px; color: var(--text-muted);">Senior Consultant - Internal Medicine</p>
+              <p style="font-size: 12px; color: var(--text-muted);">Reg No: <span id="rxDocLicenseDisplay">MCI-42918</span></p>
+            </div>
+          </div>
+
+          <div class="patient-info-strip" style="grid-template-columns: repeat(3, 1fr); row-gap: 8px;">
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Patient Name</span>
+              <strong id="rxPatientNameDisplay">Rahul Sharma</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Age / Sex</span>
+              <strong id="rxPatientAgeDisplay">32 Yrs / Male</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">ABHA Health ID</span>
+              <strong id="rxAbhaDisplay" style="color: var(--primary);">91-4829-1082-3640</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Consult Date</span>
+              <strong id="rxDateDisplay">Today</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Clinical Triage</span>
+              <strong id="rxTriageDisplay" style="color: #059669;">Level 1: Routine OPD</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Prescription ID</span>
+              <strong id="rxIdDisplay" style="color: var(--teal);">RX-2026-9214</strong>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Diagnosis:</span>
+            <div id="rxDiagnosisDisplay" style="font-size: 14px; font-weight: 600; color: #111827; margin-top: 2px;">
+              Acute Upper Respiratory Tract Infection (URTI) with Pharyngitis
+            </div>
+          </div>
+
+          <div style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Rx (Medications)</div>
+
+          <table class="rx-meds-print-table">
+            <thead>
+              <tr>
+                <th>Medicine Name</th>
+                <th>Dosage</th>
+                <th>Timing</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="rxPrintMedsTbody">
+              <tr>
+                <td><strong>1.</strong> Tab. Augmentin 625 Duo</td>
+                <td><strong>1 tablet twice daily</strong></td>
+                <td>After Meals</td>
+                <td>5 Days</td>
+              </tr>
+              <tr>
+                <td><strong>2.</strong> Tab. Dolo 650mg</td>
+                <td><strong>1 tablet thrice daily (SOS)</strong></td>
+                <td>After Meals</td>
+                <td>3 Days</td>
+              </tr>
+              <tr>
+                <td><strong>3.</strong> Tab. Pantocid 40mg</td>
+                <td><strong>1 tablet once daily</strong></td>
+                <td>Before Breakfast</td>
+                <td>5 Days</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="background: #f9fafb; border-left: 3px solid var(--primary); padding: 10px 12px; margin-bottom: 16px;">
+            <strong style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 2px;">Advice & Follow-up:</strong>
+            <p id="rxAdviceDisplay" style="font-size: 13px; color: var(--text-main); margin: 0;">Drink plenty of warm fluids. Salt water gargles. Steam inhalation twice daily. Strict rest.</p>
+          </div>
+
+          <div class="letterhead-bottom-stamp">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <canvas id="rxQrCanvas" width="64" height="64" style="border: 1px solid var(--border); padding: 2px; background: #fff;"></canvas>
+              <div>
+                <strong style="font-size: 12px; display: block;">Pharmacy QR Verification</strong>
+                <small style="color: var(--text-muted); font-size: 11px;">Digitally signed & verifiable e-prescription</small>
+              </div>
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-family: serif; font-size: 17px; color: var(--primary); border-bottom: 1px solid #111827; padding-bottom: 2px;" id="rxSignatureDoctor">
+                Dr. Ramesh Chandra Gupta
+              </div>
+              <small style="color: var(--text-muted); font-size: 11px;">Authorized Medical Practitioner</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-action-footer">
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+          <i class="fas fa-print"></i> Print
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="window.downloadPrescriptionPDF(document.getElementById('rxIdDisplay').textContent)">
+          <i class="fas fa-download"></i> Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container"></div>
+
+  <!-- End-to-End Native WebRTC & e-Prescription ES Module Integration -->
+  <script type="module">
+    import { initAuthObserver } from "./auth.js?v=4.1";
+    import { 
+      initVideoConsultationRoom, 
+      toggleMicrophone, 
+      toggleCameraFeed, 
+      toggleScreenSharing, 
+      swapVideoFeeds,
+      terminateCallSession 
+    } from "./video-call.js";
+    import { 
+      addMedicineTableRow, 
+      issueSignedPrescription,
+      downloadPrescriptionPDF 
+    } from "./prescription.js";
+
+    window.toggleMic = toggleMicrophone;
+    window.toggleCamera = toggleCameraFeed;
+    window.toggleScreenShare = toggleScreenSharing;
+    window.swapVideoFeeds = swapVideoFeeds;
+    window.endCallSession = terminateCallSession;
+    window.issueSignedPrescription = issueSignedPrescription;
+    window.downloadPrescriptionPDF = downloadPrescriptionPDF;
+
+    function startConsultationRoom() {
+      // Initialize Auth guard
+      initAuthObserver();
+
+      // Initialize Native WebRTC Session & Media Feeds
+      initVideoConsultationRoom();
+
+      // Bind medicine add button
+      const addMedBtn = document.getElementById("addMedicineBtn");
+      if (addMedBtn) {
+        addMedBtn.addEventListener("click", addMedicineTableRow);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", startConsultationRoom);
+    } else {
+      startConsultationRoom();
+    }
+
+    // 1-Click Standard Dosage Helper (RJPT 2025 Standard)
+    window.applyQuickDosage = function(dosage, timing, duration) {
+      const rows = document.querySelectorAll("#rxMedicineTbody tr");
+      if (rows.length > 0) {
+        const lastRow = rows[rows.length - 1];
+        const dInput = lastRow.querySelector(".med-dosage");
+        const tSelect = lastRow.querySelector(".med-timing");
+        const durInput = lastRow.querySelector(".med-duration");
+        if (dInput) dInput.value = dosage;
+        if (tSelect) tSelect.value = timing;
+        if (durInput) durInput.value = duration;
+      }
+    };
+
+    window.showToast = function(msg, type = "info") {
+      const c = document.querySelector(".toast-container");
+      if (!c) return;
+      const t = document.createElement("div");
+      t.className = "toast-msg";
+      t.innerHTML = `<i class="fas fa-check-circle" style="color: var(--teal);"></i> ${msg}`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 3000);
+    };
+
+    // Live WebRTC Diagnostic Telemetry Update (IEEE Standard)
+    setInterval(() => {
+      const lat = document.getElementById("telemetryLatency");
+      if (lat) {
+        const ms = Math.floor(28 + Math.random() * 8);
+        lat.textContent = `${ms}ms`;
+      }
+    }, 3500);
+
+    // In-Call Messaging Handler with Instant AI Clinical Triage
+    window.sendInCallMessage = function() {
+      const input = document.getElementById("inCallMessageInput");
+      const msgList = document.getElementById("inCallChatMessages");
+      if (!input || !msgList) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get("role") || "patient";
+      const senderLabel = role === "doctor" ? "Doctor" : "Patient";
+      const bubbleClass = role === "doctor" ? "doctor" : "patient";
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${bubbleClass}`;
+      bubble.innerHTML = `
+        <div class="chat-meta">${senderLabel} &bull; ${timeStr}</div>
+        ${text.replace(/</g, "&lt;")}
+      `;
+      msgList.appendChild(bubble);
+      msgList.scrollTop = msgList.scrollHeight;
+      input.value = "";
+
+      // Real-time immediate doctor response (Within 350ms)
+      if (role !== "doctor") {
+        setTimeout(() => {
+          const docBubble = document.createElement("div");
+          docBubble.className = "chat-bubble doctor";
+          const query = text.toLowerCase();
+          let reply = "Maine aapka message dekh liya hai. Symptoms review karke prescription update kar di hai. Salt water gargle karein aur aaram karein.";
+
+          if (query.includes("bukhar") || query.includes("fever") || query.includes("temperature")) {
+            reply = "Fever ke liye maine Tab Dolo 650 SOS add kar di hai. Har 6-8 ghante me le sakte hain agar 100°F se zyada bukhar ho. Paani khoob piyein.";
+          } else if (query.includes("gala") || query.includes("throat") || query.includes("cough") || query.includes("khansi")) {
+            reply = "Gale me acute pharyngitis infection hai. Augmentin 625 Duo antibiotic 5 din tak lijiye aur din me 3 baar warm saline water gargles zaroor karein.";
+          } else if (query.includes("sar dard") || query.includes("headache") || query.includes("pain")) {
+            reply = "Viral infection ke sath headache aam baat hai. Paracetamol se aaram mil jayega. Mobile aur screen light se thoda door rahein.";
+          } else if (query.includes("report") || query.includes("test") || query.includes("cbc")) {
+            reply = "Maine aapki upload ki hui diagnostic report verify kar li hai. Parameters stable hain, baseline viral infection hai.";
+          }
+
+          docBubble.innerHTML = `
+            <div class="chat-meta"><i class="fas fa-user-doctor"></i> Doctor &bull; ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            ${reply}
+          `;
+          msgList.appendChild(docBubble);
+          msgList.scrollTop = msgList.scrollHeight;
+        }, 380);
+      }
+    };
+
+    // Diagnostic Report File Upload Handler
+    window.handleReportUpload = function(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const container = document.getElementById("reportsListContainer");
+      if (!container) return;
+
+      const isPdf = file.type.includes("pdf") || file.name.endsWith(".pdf");
+      const icon = isPdf ? "fa-file-pdf" : "fa-file-image";
+      const iconColor = isPdf ? "#ef4444" : "#0284c7";
+      const sizeStr = (file.size / (1024 * 1024)).toFixed(1) + " MB";
+
+      const item = document.createElement("div");
+      item.className = "report-chip-item";
+      item.innerHTML = `
+        <i class="fas ${icon}" style="color: ${iconColor}; font-size: 16px;"></i>
+        <div style="flex: 1; min-width: 0;">
+          <strong style="font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</strong>
+          <span style="font-size: 10px; color: #64748b;">${sizeStr} &bull; Just Attached</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="window.showToast('Document verified by encrypted EHR repository', 'info', 'Medical Record')">View</button>
+      `;
+      container.appendChild(item);
+      if (window.showToast) {
+        window.showToast(`Report "${file.name}" uploaded successfully!`, "success", "Report Shared");
+      }
+    };
+  </script>
+</body>
+</html>

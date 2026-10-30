@@ -1,0 +1,592 @@
+﻿
+<html xmlns:o='urn:schemas-microsoft-com:office:office'
+      xmlns:w='urn:schemas-microsoft-com:office:word'
+      xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'>
+<title>CareConnect360 - Software Requirements Specification (SRS)</title>
+<!--[if gte mso 9]>
+<xml>
+ <w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>100</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+ </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  @page {
+    size: 21.0cm 29.7cm;
+    margin: 2.0cm 2.0cm 2.0cm 2.0cm;
+    mso-page-orientation: portrait;
+  }
+  body {
+    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #1e293b;
+  }
+  h1, h2, h3 { font-family: 'Arial', sans-serif; }
+  h2 {
+    font-size: 14pt;
+    color: #0f172a;
+    border-bottom: 2px solid #0d9488;
+    padding-bottom: 4px;
+    margin-top: 24pt;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #1e293b;
+    margin-top: 14pt;
+    page-break-after: avoid;
+  }
+  p { margin-bottom: 8pt; text-align: justify; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12pt 0;
+    font-size: 10pt;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 6pt 8pt;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    font-weight: bold;
+    color: #0f172a;
+  }
+  .academic-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12pt; margin-bottom: 18pt; }
+  .academic-dept { font-size: 14pt; font-weight: bold; text-transform: uppercase; color: #1e293b; }
+  .academic-college { font-size: 16pt; font-weight: bold; text-transform: uppercase; color: #0f172a; }
+  .academic-subhead { font-size: 10pt; color: #475569; }
+  .title-block { text-align: center; padding: 12pt; background-color: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 18pt; }
+  .doc-type { font-size: 11pt; font-weight: bold; color: #0d9488; text-transform: uppercase; }
+  .project-title { font-size: 16pt; font-weight: bold; color: #0f172a; margin-top: 4pt; }
+  .project-subtitle { font-size: 10pt; color: #64748b; margin-top: 4pt; }
+  .sign-table td { width: 33.33%; padding: 10pt; }
+  .signature-space { margin-top: 40pt; border-top: 1px dashed #64748b; padding-top: 6pt; }
+</style>
+</head>
+<body>
+
+
+    <!-- University & College Department Header -->
+    <div class="academic-header">
+      <div class="academic-dept">Department of Computer Science &amp; Engineering</div>
+      <div class="academic-college">ABES Engineering College, Ghaziabad</div>
+      <div class="academic-subhead">Affiliated to Dr. A.P.J. Abdul Kalam Technical University (AKTU), Lucknow</div>
+    </div>
+
+    <!-- Title Block -->
+    <div class="title-block">
+      <div class="doc-type">Software Requirements Specification (SRS)</div>
+      <div class="project-title">CareConnect360: Full-Stack WebRTC Telemedicine &amp; Intelligent Healthcare Management Platform</div>
+      <div class="project-subtitle">Standard Academic Compliance: IEEE Std 830-1998 &bull; 3rd Year Major Engineering Project (2026 - 2027)</div>
+    </div>
+
+    <!-- Submission & Guidance Meta Table -->
+    <table class="metadata-table">
+      <tr>
+        <th>SUBMITTED BY (SOLO DEVELOPER)</th>
+        <th>UNDER THE GUIDANCE OF</th>
+      </tr>
+      <tr>
+        <td>
+          <strong>Sudhanshu Pandey</strong><br>
+          University Roll No: <strong>240032001127</strong><br>
+          Degree: Bachelor of Technology (B.Tech)<br>
+          Branch: Computer Science &amp; Engineering (3rd Year)<br>
+          Academic Session: 2026 – 2027<br>
+          <em>Role: Sole Lead Architect &amp; Full-Stack Engineer</em>
+        </td>
+        <td>
+          <strong>___________________________________</strong><br>
+          (Project Supervisor / Faculty Guide)<br>
+          Department of Computer Science &amp; Engineering<br>
+          ABES Engineering College, Ghaziabad<br>
+          <em>Evaluation Status: 3rd Year Engineering Project Baseline</em>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Revision History Table -->
+    <h3>Document Revision &amp; Approval History</h3>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 12%;">Version</th>
+          <th style="width: 18%;">Release Date</th>
+          <th>Description &amp; Key Milestones</th>
+          <th style="width: 20%;">Prepared By</th>
+          <th style="width: 20%;">Reviewed By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>0.1</strong></td>
+          <td>15-Sep-2026</td>
+          <td>Initial Architectural Draft &amp; Healthcare Problem Scope Definition</td>
+          <td>Sudhanshu Pandey</td>
+          <td>Project Guide</td>
+        </tr>
+        <tr>
+          <td><strong>0.5</strong></td>
+          <td>05-Oct-2026</td>
+          <td>Integration of WebRTC P2P Signaling &amp; CDSS Drug Allergy Radar</td>
+          <td>Sudhanshu Pandey</td>
+          <td>Project Committee</td>
+        </tr>
+        <tr>
+          <td><strong>1.0</strong></td>
+          <td>26-Oct-2026</td>
+          <td>Final 3rd Year Baseline SRS (IEEE Std 830-1998 Conforming)</td>
+          <td>Sudhanshu Pandey</td>
+          <td>HOD / Evaluation Panel</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 1. Introduction -->
+    <h2>1. Introduction</h2>
+    
+    <h3>1.1 Purpose</h3>
+    <p>
+      The purpose of this Software Requirements Specification (SRS) document is to provide a complete, rigorous, and unambiguous technical specification for <strong>CareConnect360</strong>, a cloud-enabled, full-stack telemedicine and clinical management platform. This specification conforms to the <strong>IEEE Std 830-1998</strong> standard and establishes binding functional, performance, security, and interface baselines for academic lab evaluations, faculty reviews, and production deployment.
+    </p>
+
+    <h3>1.2 Scope of the System</h3>
+    <p>
+      Healthcare accessibility is frequently hindered by geographic isolation, long outpatient waiting queues, fragmented paper records, and accidental adverse drug interactions. <strong>CareConnect360</strong> resolves these bottlenecks through a browser-native clinical consultation hub:
+    </p>
+    <ul>
+      <li><strong>Dynamic Doctor-Patient Matchmaking:</strong> Multi-criteria search by medical specialty (Cardiology, Dermatology, Pediatrics, General Medicine), consultation fee, and real-time slot reservation without double-booking.</li>
+      <li><strong>Native WebRTC Audio/Video Teleconsultation:</strong> Zero-install, peer-to-peer (P2P) HD audio/video consultation with microphone mute/unmute, camera toggle, screen sharing, PIP feed swapping, and dynamic watermark sync.</li>
+      <li><strong>Clinical Decision Support System (CDSS):</strong> Real-time drug contraindication radar cross-checking prescribed medications against patient known allergies (e.g. Penicillin, NSAIDs).</li>
+      <li><strong>Digitally Signed e-Prescriptions:</strong> Client-side cryptographic signature rendering and instant verifiable PDF downloads via jsPDF with QR verification codes.</li>
+      <li><strong>Electronic Health Records (EHR) Vault:</strong> Centralized timeline logging patient vitals telemetry (BP, SpO2, Heart Rate) and diagnostic lab reports (.pdf, .png, .jpg).</li>
+    </ul>
+
+    <h3>1.3 Definitions, Acronyms, and Abbreviations</h3>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 20%;">Term / Acronym</th>
+          <th>Definition &amp; Technical Context</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SRS</strong></td>
+          <td>Software Requirements Specification (IEEE Std 830-1998 recommended standard format).</td>
+        </tr>
+        <tr>
+          <td><strong>WebRTC</strong></td>
+          <td>Web Real-Time Communication (W3C standard for browser-to-browser P2P audio/video streaming).</td>
+        </tr>
+        <tr>
+          <td><strong>PeerJS / STUN</strong></td>
+          <td>Signaling layer and Session Traversal Utilities for NAT traversal and candidate discovery.</td>
+        </tr>
+        <tr>
+          <td><strong>CDSS</strong></td>
+          <td>Clinical Decision Support System for algorithmic medication safety and allergy verification.</td>
+        </tr>
+        <tr>
+          <td><strong>JWT / RBAC</strong></td>
+          <td>JSON Web Token for stateless authorization; Role-Based Access Control (Patient, Doctor, Admin).</td>
+        </tr>
+        <tr>
+          <td><strong>DTLS-SRTP</strong></td>
+          <td>Datagram Transport Layer Security &amp; Secure Real-Time Transport Protocol (256-bit AES media encryption).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 2. Overall Description -->
+    <h2>2. Overall Description</h2>
+    
+    <h3>2.1 Product Perspective</h3>
+    <p>
+      CareConnect360 operates as an autonomous, multi-tier web application built upon modern decoupled architecture, combining an HTML5/CSS3/ES6 presentation tier, a Node.js/Express.js application tier, a `/peerjs` WebRTC signaling engine, and cloud/local persistence.
+    </p>
+
+    <div class="diagram-box">
+      <div class="mermaid">
+flowchart TD
+    Client["Client Presentation Tier\n(HTML5 / CSS3 / ES6 / WebRTC)"]
+    API["Application & Signaling Tier\n(Node.js / Express.js / PeerJS Engine)"]
+    DB[("Data Persistence & Storage\n(Firestore / REST API / LocalStorage)")]
+    STUN["Google STUN Infrastructure\n(stun.l.google.com:19302)"]
+
+    Client <-->|RESTful JSON Endpoints| API
+    Client <-->|WebRTC Signaling| API
+    Client <===>|Direct P2P Encrypted Audio/Video Feed| Client
+    Client -.->|NAT Traversal & Candidate Discovery| STUN
+    API <-->|CRUD & Authentication| DB
+      </div>
+      <div class="diagram-caption">Figure 2.1: Multi-Tier Architectural Topology of CareConnect360</div>
+    </div>
+
+    <h3>2.2 User Roles &amp; Characteristics</h3>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 22%;">User Persona</th>
+          <th style="width: 20%;">Technical Skill</th>
+          <th>Core Privileges &amp; Responsibilities</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Patient</strong></td>
+          <td>Novice to Intermediate</td>
+          <td>Register, browse verified specialist directory, book consultation appointments, join encrypted video room, upload lab reports, view vital trends, and download signed e-Prescriptions.</td>
+        </tr>
+        <tr>
+          <td><strong>Doctor / Specialist</strong></td>
+          <td>Intermediate</td>
+          <td>Manage OPD schedule, review patient intake vitals &amp; diagnostic history, conduct P2P video consultation, author prescriptions with CDSS contraindication alerts, and digitally sign prescriptions.</td>
+        </tr>
+        <tr>
+          <td><strong>Administrator</strong></td>
+          <td>High (DevOps)</td>
+          <td>Monitor system uptime, manage doctor verification credentials, view platform audit logs, enforce data privacy compliance, and moderate user accounts.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 3. System Features & Functional Requirements -->
+    <h2>3. System Features &amp; Functional Requirements</h2>
+
+    <h3>3.1 Module 1: Patient Intake, Discovery &amp; Scheduling</h3>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Req ID</th>
+          <th style="width: 30%;">Feature Description</th>
+          <th>Input Validation &amp; Behavior</th>
+          <th style="width: 14%;">Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>FR-1.1</strong></td>
+          <td>Doctor Directory &amp; Filter</td>
+          <td>Filters specialists by department, consultation fee, and real-time slot availability.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-1.2</strong></td>
+          <td>Conflict-Free Slot Booking</td>
+          <td>Real-time reservation preventing double-booking of any doctor in identical time slots.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-1.3</strong></td>
+          <td>Clinical Intake Triage</td>
+          <td>Captures chief complaint, symptom duration, allergy disclosures, and emergency waiver.</td>
+          <td><span class="priority-med">Medium</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>3.2 Module 2: Low-Latency WebRTC P2P Teleconsultation</h3>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Req ID</th>
+          <th style="width: 30%;">Feature Description</th>
+          <th>Input Validation &amp; Behavior</th>
+          <th style="width: 14%;">Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>FR-2.1</strong></td>
+          <td>P2P Video Session Handshake</td>
+          <td>Connects to `/peerjs` signaling server, generates room peer IDs, and exchanges SDP offer/answer.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-2.2</strong></td>
+          <td>Audio/Video Track Controls</td>
+          <td>Enables live mute/unmute of microphone and camera on/off with instant UI indicator updates.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-2.3</strong></td>
+          <td>Feed Swapping &amp; Screen Share</td>
+          <td>Swaps local PIP preview with stage; dispatches screen share video stream via `getDisplayMedia()`.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-2.4</strong></td>
+          <td>Dynamic Booked Doctor Watermark</td>
+          <td>Queries active appointment ID and updates consultation top bar, watermark, and letterhead to match booked doctor.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 Module 3: CDSS Drug Radar &amp; Verifiable e-Prescription Pad</h3>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Req ID</th>
+          <th style="width: 30%;">Feature Description</th>
+          <th>Input Validation &amp; Behavior</th>
+          <th style="width: 14%;">Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>FR-3.1</strong></td>
+          <td>Allergy Contraindication Radar</td>
+          <td>Scans prescribed active compounds against patient allergies (e.g. Penicillin) and triggers visual alerts.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-3.2</strong></td>
+          <td>Digital Signature Rendering</td>
+          <td>Binds doctor registration number, hospital credentials, and digital signature canvas to prescription record.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>FR-3.3</strong></td>
+          <td>Verifiable PDF Compilation</td>
+          <td>Instantly compiles and downloads signed PDF prescription with QR verification code using jsPDF.</td>
+          <td><span class="priority-high">High</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 4. Academic Analysis & Design Models -->
+    <h2>4. System Design &amp; Academic UML Models</h2>
+
+    <h3>4.1 Use Case Diagram</h3>
+    <div class="diagram-box">
+      <div class="mermaid">
+flowchart LR
+    Patient((Patient))
+    Doctor((Doctor))
+    Admin((Administrator))
+
+    subgraph CareConnect360 Boundary
+        UC1[Register & Login Account]
+        UC2[Search & Book Doctor Slot]
+        UC3[Join WebRTC Video Consultation]
+        UC4[Mute/Cam Toggle & Screen Share]
+        UC5[Upload Diagnostic Reports & Vitals]
+        UC6[Conduct Video OPD Consultation]
+        UC7[Author e-Prescription with CDSS Alerts]
+        UC8[Digitally Sign & Issue Prescription]
+        UC9[Download Verifiable PDF Prescription]
+        UC10[Audit Platform Logs & User Moderation]
+    end
+
+    Patient --> UC1
+    Patient --> UC2
+    Patient --> UC3
+    Patient --> UC4
+    Patient --> UC5
+    Patient --> UC9
+
+    Doctor --> UC1
+    Doctor --> UC3
+    Doctor --> UC4
+    Doctor --> UC6
+    Doctor --> UC7
+    Doctor --> UC8
+
+    Admin --> UC1
+    Admin --> UC10
+      </div>
+      <div class="diagram-caption">Figure 4.1: Use Case Diagram for Patient, Doctor, and Administrator Workflows</div>
+    </div>
+
+    <h3>4.2 Data Flow Diagram (DFD Level 0 - System Context)</h3>
+    <div class="diagram-box">
+      <div class="mermaid">
+flowchart TD
+    Patient["Patient Actor"]
+    Doctor["Doctor / Specialist"]
+    System[["CareConnect360 Telemedicine Platform"]]
+    EHR[("Health Records & DB Repository")]
+
+    Patient -->|Login, Slot Booking, AV Stream, Vitals| System
+    System -->|Booking Confirmation, Remote Video, Signed PDF| Patient
+
+    Doctor -->|Availability, Diagnosis, Digital Signature| System
+    System -->|Patient Queue, Incoming Video Call, Medical History| Doctor
+
+    System <-->|Read / Write Patient, Appointments & Prescription Records| EHR
+      </div>
+      <div class="diagram-caption">Figure 4.2: Data Flow Diagram (DFD Level 0 Context Model)</div>
+    </div>
+
+    <h3>4.3 Entity-Relationship (ER) Schema Model</h3>
+    <div class="diagram-box">
+      <div class="mermaid">
+erDiagram
+    USERS {
+        string user_id PK
+        string full_name
+        string email UK
+        string password_hash
+        string role
+        string phone
+    }
+
+    DOCTORS {
+        string doctor_id PK
+        string user_id FK
+        string specialty
+        string qualification
+        string registration_no
+        string hospital_clinic
+        decimal consultation_fee
+    }
+
+    APPOINTMENTS {
+        string appointment_id PK
+        string patient_id FK
+        string doctor_id FK
+        date appointment_date
+        string time_slot
+        string status
+        string chief_complaint
+    }
+
+    PRESCRIPTIONS {
+        string prescription_id PK
+        string appointment_id FK
+        string doctor_id FK
+        string patient_id FK
+        string diagnosis
+        json medications_list
+        string digital_signature_hash
+    }
+
+    USERS ||--o| DOCTORS : "has profile"
+    USERS ||--o{ APPOINTMENTS : "books as patient"
+    DOCTORS ||--o{ APPOINTMENTS : "attends as doctor"
+    APPOINTMENTS ||--o| PRESCRIPTIONS : "generates"
+      </div>
+      <div class="diagram-caption">Figure 4.3: Entity-Relationship Diagram in 3rd Normal Form (3NF)</div>
+    </div>
+
+    <h3>4.4 WebRTC Peer-to-Peer Sequence Architecture</h3>
+    <div class="diagram-box">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Patient as Patient (Browser Tab 1)
+    participant Signaling as Express / PeerJS Server (:5500)
+    actor Doctor as Doctor (Browser Tab 2)
+
+    Patient->>Patient: Request getUserMedia (Webcam/Mic)
+    Doctor->>Doctor: Request getUserMedia (Webcam/Mic)
+    
+    Patient->>Signaling: Connect with Peer ID "cc_room_patient"
+    Doctor->>Signaling: Connect with Peer ID "cc_room_doctor"
+    
+    Signaling-->>Patient: Connection Established
+    Signaling-->>Doctor: Connection Established
+    
+    Patient->>Signaling: Dispatch Call Offer (SDP + Audio/Video Stream)
+    Signaling->>Doctor: Forward Call Offer from Patient
+    
+    Doctor->>Doctor: Answer Call with Local Media Stream
+    Doctor->>Signaling: Dispatch SDP Answer
+    Signaling->>Patient: Deliver SDP Answer
+    
+    Note over Patient,Doctor: Direct P2P DTLS-SRTP Media Channel Open
+    Patient<<-->>Doctor: 2-Way HD Video, Audio, and Screen Sharing
+      </div>
+      <div class="diagram-caption">Figure 4.4: WebRTC Signaling and Direct Media Channel Sequence Diagram</div>
+    </div>
+
+    <!-- 5. Non-Functional Requirements -->
+    <h2>5. Non-Functional Requirements (NFRs)</h2>
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th style="width: 22%;">Attribute</th>
+          <th style="width: 38%;">Target Benchmark</th>
+          <th>Testing &amp; Verification Protocol</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>5.1 Performance</strong></td>
+          <td>Initial load &lt; 1.8s; WebRTC stream latency &lt; 200ms; REST API latency &lt; 150ms.</td>
+          <td>JMeter load testing under 50 concurrent simulated users.</td>
+        </tr>
+        <tr>
+          <td><strong>5.2 Security</strong></td>
+          <td>Salted Bcrypt password hashing (10 rounds); DTLS-SRTP 256-bit media stream encryption.</td>
+          <td>OWASP ZAP vulnerability scanning and automated penetration testing.</td>
+        </tr>
+        <tr>
+          <td><strong>5.3 Reliability</strong></td>
+          <td>Uptime &ge; 99.0%; automatic session recovery on ICE candidate timeout.</td>
+          <td>Stress testing with simulated network drops.</td>
+        </tr>
+        <tr>
+          <td><strong>5.4 Portability</strong></td>
+          <td>Chrome (v100+), Edge (v100+), Firefox (v98+), Safari (v15+); responsive mobile viewports.</td>
+          <td>Cross-browser testing across mobile and desktop display viewports.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 6. Academic Verification & Sign-Off -->
+    <h2>6. Academic Verification &amp; Sign-Off</h2>
+    <p>
+      This Software Requirements Specification document for <strong>CareConnect360</strong> has been independently developed and authored by <strong>Sudhanshu Pandey (Roll No: 240032001127)</strong> as a solo 3rd-year engineering project. It has been examined and verified for academic evaluation:
+    </p>
+
+    <table class="sign-table">
+      <tr>
+        <td>
+          <strong>PROJECT DEVELOPER</strong><br><br>
+          <strong>Sudhanshu Pandey</strong><br>
+          Roll No: <strong>240032001127</strong><br>
+          Student, 3rd Year B.Tech (CSE)<br>
+          ABES Engineering College, Ghaziabad<br>
+          <div class="signature-space">
+            Signature: _______________________<br>
+            Date: ___________________________
+          </div>
+        </td>
+        <td>
+          <strong>PROJECT SUPERVISOR / GUIDE</strong><br><br>
+          <strong>___________________________________</strong><br>
+          Project Supervisor / Guide<br>
+          Department of Computer Science &amp; Engg.<br>
+          ABES Engineering College, Ghaziabad<br>
+          <div class="signature-space">
+            Signature: _______________________<br>
+            Date: ___________________________
+          </div>
+        </td>
+        <td>
+          <strong>HEAD OF DEPARTMENT (HOD)</strong><br><br>
+          <strong>Head of Department (HOD)</strong><br>
+          Department of Computer Science &amp; Engg.<br>
+          ABES Engineering College, Ghaziabad<br>
+          <div class="signature-space">
+            Signature: _______________________<br>
+            Date: ___________________________
+          </div>
+        </td>
+      </tr>
+    </table>
+
+  
+</body>
+</html>

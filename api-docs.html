@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareConnect360 REST API Explorer & Interactive Docs</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #0d9488;
+      --primary-hover: #0f766e;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --get: #0284c7;
+      --post: #059669;
+      --patch: #d97706;
+      --delete: #dc2626;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+    .header {
+      background: #111827;
+      border-bottom: 1px solid var(--card-border);
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: #ffffff;
+    }
+    .brand img {
+      width: 38px;
+      height: 38px;
+    }
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .brand h1 span { color: var(--primary); }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(13, 148, 136, 0.15);
+      border: 1px solid rgba(13, 148, 136, 0.4);
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2dd4bf;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #2dd4bf;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #2dd4bf;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+    .overview-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .overview-card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .overview-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .auth-demo-bar {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .auth-chip {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .auth-chip strong { color: var(--primary); }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 36px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 8px;
+      color: #e2e8f0;
+    }
+    .endpoint-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .endpoint-card:hover {
+      border-color: #64748b;
+    }
+    .endpoint-header {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .endpoint-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .method-badge {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      min-width: 65px;
+      text-align: center;
+    }
+    .method-get { background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.4); }
+    .method-post { background: rgba(5, 150, 105, 0.2); color: #34d399; border: 1px solid rgba(5, 150, 105, 0.4); }
+    .method-put { background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.4); }
+    .method-patch { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.4); }
+    .method-delete { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.4); }
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .endpoint-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+    .endpoint-body {
+      border-top: 1px solid var(--card-border);
+      padding: 20px;
+      background: #131d2e;
+      display: none;
+    }
+    .endpoint-body.active {
+      display: block;
+    }
+    .payload-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    textarea.payload-editor {
+      width: 100%;
+      height: 110px;
+      background: #090e17;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      padding: 10px;
+      margin-bottom: 14px;
+      resize: vertical;
+    }
+    .btn-exec {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-exec:hover {
+      background: var(--primary-hover);
+    }
+    .response-box {
+      margin-top: 16px;
+      background: #090e17;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 12px;
+      display: none;
+    }
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+    }
+    .status-badge {
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .status-200 { background: #064e3b; color: #34d399; }
+    .status-400 { background: #7f1d1d; color: #fca5a5; }
+    pre.response-json {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #cbd5e1;
+      overflow-x: auto;
+      max-height: 280px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation -->
+  <header class="header">
+    <a href="index.html" class="brand">
+      <img src="logo.svg?v=2" alt="Logo">
+      <h1>CareConnect<span>360</span> &bull; API Explorer</h1>
+    </a>
+    <div class="header-badge">
+      <div class="pulse-dot"></div>
+      <span>Port 5500 &bull; REST API Online (P_013)</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Platform Architecture & Overview -->
+    <div class="overview-card">
+      <h2>CareConnect360: VirtualCare Telemedicine Platform</h2>
+      <p>Interactive REST API documentation and live endpoint runner for Project <strong>P_013</strong>. Evaluators can test each API call with zero setup directly against the live backend.</p>
+      
+      <div class="auth-demo-bar">
+        <div class="auth-chip">
+          <strong>Base URL:</strong> <span>http://localhost:5500</span>
+        </div>
+        <div class="auth-chip">
+          <strong>Patient:</strong> <span>patient@careconnect.com</span> (Patient@Care360)
+        </div>
+        <div class="auth-chip">
+          <strong>Doctor:</strong> <span>doctor@careconnect.com</span> (Doctor@Care360)
+        </div>
+        <a href="index.html" class="btn-exec" style="text-decoration: none; margin-left: auto;">
+          <i class="fas fa-home"></i> Back to Main App
+        </a>
+      </div>
+    </div>
+
+    <!-- 1. System Health -->
+    <h3 class="section-title"><i class="fas fa-heartbeat" style="color: #2dd4bf;"></i> 1. System Health & Compliance</h3>
+    
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/health</span>
+        </div>
+        <span class="endpoint-desc">Project metadata, P_013 verification and backend server status</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/health', 'GET', null, this)">
+          <i class="fas fa-play"></i> Execute Live
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 2. Authentication -->
+    <h3 class="section-title"><i class="fas fa-lock" style="color: #38bdf8;"></i> 2. Authentication & Authorization (JWT + Bcrypt)</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-path">/api/auth/login</span>
+        </div>
+        <span class="endpoint-desc">Authenticate patient or doctor, returns JWT token & user session</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="payload-title">Request Body (JSON)</div>
+        <textarea class="payload-editor">{
+  "email": "patient@careconnect.com",
+  "password": "Patient@Care360"
+}</textarea>
+        <button class="btn-exec" onclick="executeApi('/api/auth/login', 'POST', this.previousElementSibling.value, this)">
+          <i class="fas fa-play"></i> Execute Live
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/auth/me</span>
+        </div>
+        <span class="endpoint-desc">Fetch currently authenticated user profile</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/auth/me', 'GET', null, this)">
+          <i class="fas fa-play"></i> Execute Live
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-path">/api/auth/profile</span>
+        </div>
+        <span class="endpoint-desc">Update user profile (phone, address, blood group, age)</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="payload-title">Request Body (JSON)</div>
+        <textarea class="payload-editor">{
+  "phone": "+91 98765 43210",
+  "bloodGroup": "O+",
+  "age": 32,
+  "address": "South Extension, New Delhi"
+}</textarea>
+        <button class="btn-exec" onclick="executeApi('/api/auth/profile', 'PUT', this.previousElementSibling.value, this)">
+          <i class="fas fa-play"></i> Execute Live
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 3. Doctors & Specialty Filters -->
+    <h3 class="section-title"><i class="fas fa-user-md" style="color: #a78bfa;"></i> 3. Clinical Specialty Departments & Doctor Discovery</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/doctors?dept=Cardiology</span>
+        </div>
+        <span class="endpoint-desc">Filter credentialed senior specialists strictly by clinical specialty</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/doctors?dept=Cardiology', 'GET', null, this)">
+          <i class="fas fa-play"></i> Test Cardiology Filter
+        </button>
+        <button class="btn-exec" style="background: #475569; margin-left: 8px;" onclick="executeApi('/api/doctors?dept=Pediatrics', 'GET', null, this)">
+          <i class="fas fa-play"></i> Test Pediatrics Filter
+        </button>
+        <button class="btn-exec" style="background: #334155; margin-left: 8px;" onclick="executeApi('/api/doctors', 'GET', null, this)">
+          <i class="fas fa-play"></i> Fetch All Doctors
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/doctors/doc-in-101</span>
+        </div>
+        <span class="endpoint-desc">Get detailed profile, license & clinic information for single doctor</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/doctors/doc-in-101', 'GET', null, this)">
+          <i class="fas fa-play"></i> Execute Live
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 4. Appointments & Slots -->
+    <h3 class="section-title"><i class="fas fa-calendar-check" style="color: #fb923c;"></i> 4. Virtual Consultations & Real-Time Slot Locking</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/appointments/slots</span>
+        </div>
+        <span class="endpoint-desc">Real-time slot availability for doctor on specified date</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/appointments/slots?doctorId=doc-in-101&date=2026-10-02', 'GET', null, this)">
+          <i class="fas fa-play"></i> Check 2026-10-02 Slots
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/appointments/my</span>
+        </div>
+        <span class="endpoint-desc">Fetch patient appointments or doctor OPD consultation queue</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/appointments/my?role=patient', 'GET', null, this)">
+          <i class="fas fa-play"></i> Patient Appointments
+        </button>
+        <button class="btn-exec" style="background: #475569; margin-left: 8px;" onclick="executeApi('/api/appointments/my?role=doctor&userId=doc-in-101', 'GET', null, this)">
+          <i class="fas fa-play"></i> Doctor OPD Queue
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-path">/api/appointments/:id</span>
+        </div>
+        <span class="endpoint-desc">Reschedule or update consultation details (slot, date, symptoms, clinical notes)</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="payload-title">Request Body (JSON)</div>
+        <textarea class="payload-editor">{
+  "slotTime": "04:30 PM",
+  "date": "2026-10-02",
+  "clinicalNotes": "Patient requested evening follow-up slot"
+}</textarea>
+        <button class="btn-exec" onclick="executeApi('/api/appointments/appt-033175', 'PUT', this.previousElementSibling.value, this)">
+          <i class="fas fa-play"></i> Execute Live
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 5. Medical Records & Lab Reports (NEW) -->
+    <h3 class="section-title"><i class="fas fa-file-medical" style="color: #34d399;"></i> 5. Electronic Health Records & Lab Reports (EHR)</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/records/my</span>
+        </div>
+        <span class="endpoint-desc">Fetch patient diagnostic reports, pathology blood tests & radiology scans</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/records/my?patientId=usr-pat-001', 'GET', null, this)">
+          <i class="fas fa-play"></i> Fetch Demo Patient Records
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 6. Billing & Razorpay Payments -->
+    <h3 class="section-title"><i class="fas fa-credit-card" style="color: #f472b6;"></i> 6. Billing & Razorpay Signature Verification</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-path">/api/payment/create-order</span>
+        </div>
+        <span class="endpoint-desc">Create server-side Razorpay order with calculation of platform fee</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="payload-title">Request Body (JSON)</div>
+        <textarea class="payload-editor">{
+  "amount": 549,
+  "currency": "INR",
+  "receipt": "rec_live_test"
+}</textarea>
+        <button class="btn-exec" onclick="executeApi('/api/payment/create-order', 'POST', this.previousElementSibling.value, this)">
+          <i class="fas fa-play"></i> Create Order
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-path">/api/payment/verify</span>
+        </div>
+        <span class="endpoint-desc">Verify cryptographic HMAC-SHA256 Razorpay payment signature</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="payload-title">Request Body (JSON)</div>
+        <textarea class="payload-editor">{
+  "razorpay_order_id": "order_mock_test_101",
+  "razorpay_payment_id": "pay_mock_test_101",
+  "razorpay_signature": "mock_valid_signature"
+}</textarea>
+        <button class="btn-exec" onclick="executeApi('/api/payment/verify', 'POST', this.previousElementSibling.value, this)">
+          <i class="fas fa-play"></i> Verify Signature
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 7. Agora Video Streaming -->
+    <h3 class="section-title"><i class="fas fa-video" style="color: #38bdf8;"></i> 7. Agora RTC Video Conferencing Tokens</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/video/token</span>
+        </div>
+        <span class="endpoint-desc">Generate secure dynamic WebRTC video room tokens for doctor & patient</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/video/token?room=room_doc_101_demo&role=publisher', 'GET', null, this)">
+          <i class="fas fa-play"></i> Generate Token
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 8. Prescriptions -->
+    <h3 class="section-title"><i class="fas fa-prescription" style="color: #4ade80;"></i> 8. Digital Prescriptions & QR Verification</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/prescriptions/:id</span>
+        </div>
+        <span class="endpoint-desc">Fetch verified e-prescription record by QR code ID</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/prescriptions/rx-demo-101', 'GET', null, this)">
+          <i class="fas fa-play"></i> Verify Prescription
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+    <!-- 9. Notifications -->
+    <h3 class="section-title"><i class="fas fa-bell" style="color: #fbbf24;"></i> 9. Notifications & SMS Audit Log</h3>
+
+    <div class="endpoint-card">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <div class="endpoint-left">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-path">/api/notifications</span>
+        </div>
+        <span class="endpoint-desc">Audit trail of automated SMS and Email confirmation dispatches</span>
+      </div>
+      <div class="endpoint-body">
+        <button class="btn-exec" onclick="executeApi('/api/notifications', 'GET', null, this)">
+          <i class="fas fa-play"></i> Fetch Audit Logs
+        </button>
+        <div class="response-box"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function toggleEndpoint(header) {
+      const body = header.nextElementSibling;
+      body.classList.toggle('active');
+    }
+
+    let savedAuthToken = localStorage.getItem('careconnect_jwt_token') || '';
+
+    async function executeApi(url, method, body, btn) {
+      const resBox = btn.parentElement.querySelector('.response-box');
+      resBox.style.display = 'block';
+      resBox.innerHTML = '<span style="color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Executing request...</span>';
+
+      const startTime = performance.now();
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (savedAuthToken) {
+          headers['Authorization'] = `Bearer ${savedAuthToken}`;
+        }
+
+        const options = { method, headers };
+        if (body && (method === 'POST' || method === 'PATCH')) {
+          options.body = typeof body === 'string' ? body : JSON.stringify(body);
+        }
+
+        const response = await fetch(url, options);
+        const duration = Math.round(performance.now() - startTime);
+        const data = await response.json();
+
+        if (url.includes('/api/auth/login') && data.token) {
+          savedAuthToken = data.token;
+          localStorage.setItem('careconnect_jwt_token', data.token);
+        }
+
+        const statusClass = response.ok ? 'status-200' : 'status-400';
+        resBox.innerHTML = `
+          <div class="response-header">
+            <div>Status: <span class="status-badge ${statusClass}">${response.status} ${response.statusText}</span></div>
+            <div style="color: #94a3b8;">Latency: <strong>${duration} ms</strong></div>
+          </div>
+          <pre class="response-json">${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (err) {
+        resBox.innerHTML = `
+          <div class="response-header">
+            <div>Status: <span class="status-badge status-400">Fetch Error</span></div>
+          </div>
+          <pre class="response-json">${err.message}</pre>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

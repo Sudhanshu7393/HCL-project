@@ -1,0 +1,173 @@
+[
+  {
+    "id": "lab-001",
+    "testCode": "CBC-01",
+    "testName": "Complete Blood Count (CBC) with ESR",
+    "category": "Hematology",
+    "description": "Evaluates overall health and detects anemia, viral infections, bacterial infections, and platelet disorders.",
+    "parametersIncluded": [
+      "Hemoglobin (Hb)",
+      "RBC Count",
+      "Total Leucocyte Count (TLC/WBC)",
+      "Differential Leucocyte Count (DLC)",
+      "Platelet Count",
+      "PCV/Hematocrit",
+      "MCV, MCH, MCHC",
+      "Erythrocyte Sedimentation Rate (ESR)"
+    ],
+    "sampleType": "Whole Blood EDTA (2 ml)",
+    "fastingRequired": false,
+    "preparationNote": "No fasting needed. Stay hydrated before sample collection.",
+    "turnaroundTime": "6 Hours",
+    "priceInr": 350,
+    "accreditation": "NABL / CAP Certified"
+  },
+  {
+    "id": "lab-002",
+    "testCode": "LIPID-02",
+    "testName": "Lipid Profile Comprehensive",
+    "category": "Biochemistry",
+    "description": "Screening test for risk of cardiovascular disease, stroke, and cholesterol dyslipidemia.",
+    "parametersIncluded": [
+      "Total Cholesterol",
+      "HDL Cholesterol (Good)",
+      "LDL Cholesterol (Bad)",
+      "VLDL Cholesterol",
+      "Serum Triglycerides",
+      "Total/HDL Ratio",
+      "LDL/HDL Ratio"
+    ],
+    "sampleType": "Blood Serum (3 ml)",
+    "fastingRequired": true,
+    "preparationNote": "Strict 10-12 hours overnight fasting mandatory. Water allowed.",
+    "turnaroundTime": "Same Day",
+    "priceInr": 600,
+    "accreditation": "NABL Certified"
+  },
+  {
+    "id": "lab-003",
+    "testCode": "LFT-03",
+    "testName": "Liver Function Test (LFT)",
+    "category": "Biochemistry",
+    "description": "Measures proteins and enzymes produced by liver to diagnose hepatitis, fatty liver, and drug toxicity.",
+    "parametersIncluded": [
+      "Bilirubin Total",
+      "Bilirubin Direct",
+      "Bilirubin Indirect",
+      "SGOT / AST",
+      "SGPT / ALT",
+      "Alkaline Phosphatase (ALP)",
+      "Total Protein",
+      "Albumin",
+      "Globulin",
+      "A/G Ratio"
+    ],
+    "sampleType": "Blood Serum (2.5 ml)",
+    "fastingRequired": true,
+    "preparationNote": "8-10 hours fasting recommended. Avoid alcohol 24 hours prior.",
+    "turnaroundTime": "Same Day",
+    "priceInr": 650,
+    "accreditation": "NABL Certified"
+  },
+  {
+    "id": "lab-004",
+    "testCode": "KFT-04",
+    "testName": "Kidney Function Test (KFT / RFT) with Electrolytes",
+    "category": "Biochemistry",
+    "description": "Assesses renal filtration capacity, glomerular filtration rate (eGFR), and electrolyte balance.",
+    "parametersIncluded": [
+      "Serum Creatinine",
+      "Blood Urea Nitrogen (BUN)",
+      "Urea",
+      "Uric Acid",
+      "Sodium (Na+)",
+      "Potassium (K+)",
+      "Chloride (Cl-)",
+      "eGFR Calculation"
+    ],
+    "sampleType": "Blood Serum (3 ml)",
+    "fastingRequired": false,
+    "preparationNote": "Normal hydration. Avoid heavy meat meal on preceding night.",
+    "turnaroundTime": "Same Day",
+    "priceInr": 700,
+    "accreditation": "NABL Certified"
+  },
+  {
+    "id": "lab-005",
+    "testCode": "HBA1C-05",
+    "testName": "HbA1c (Glycated Hemoglobin) & Average Blood Glucose",
+    "category": "Endocrinology",
+    "description": "Gold-standard test for 3-month average blood glucose control in diabetes management.",
+    "parametersIncluded": [
+      "HbA1c Percentage",
+      "Estimated Average Glucose (eAG)"
+    ],
+    "sampleType": "Whole Blood EDTA (2 ml)",
+    "fastingRequired": false,
+    "preparationNote": "Non-fasting. Can be done at any time of day.",
+    "turnaroundTime": "4 Hours",
+    "priceInr": 450,
+    "accreditation": "NGSP / NABL Certified"
+  },
+  {
+    "id": "lab-006",
+    "testCode": "THY-06",
+    "testName": "Thyroid Profile Free (FT3, FT4, TSH Ultra-Sensitive)",
+    "category": "Endocrinology",
+    "description": "Screens for hypothyroidism, hyperthyroidism, Hashimoto's and metabolic rate irregularities.",
+    "parametersIncluded": [
+      "Free Triiodothyronine (FT3)",
+      "Free Thyroxine (FT4)",
+      "Thyroid Stimulating Hormone (TSH)"
+    ],
+    "sampleType": "Blood Serum (2 ml)",
+    "fastingRequired": true,
+    "preparationNote": "Early morning fasting sample preferred before taking thyroid medications.",
+    "turnaroundTime": "Same Day",
+    "priceInr": 550,
+    "accreditation": "NABL Certified"
+  },
+  {
+    "id": "lab-007",
+    "testCode": "VIT-07",
+    "testName": "Vitamin D3 (25-Hydroxy) & Vitamin B12 Duo Panel",
+    "category": "Vitamins & Micronutrients",
+    "description": "Checks for common causes of chronic fatigue, bone aches, neuropathy, hair loss, and muscle weakness.",
+    "parametersIncluded": [
+      "25-OH Vitamin D Total",
+      "Serum Vitamin B12 (Cyanocobalamin)"
+    ],
+    "sampleType": "Blood Serum (3 ml)",
+    "fastingRequired": false,
+    "preparationNote": "Fast 4-6 hours recommended for accurate B12 levels.",
+    "turnaroundTime": "24 Hours",
+    "priceInr": 1200,
+    "accreditation": "NABL Certified"
+  },
+  {
+    "id": "lab-008",
+    "testCode": "URINE-08",
+    "testName": "Urine Routine and Microscopic Examination (R/M)",
+    "category": "Clinical Pathology",
+    "description": "Identifies urinary tract infection (UTI), kidney stones, proteinuria, and occult bleeding.",
+    "parametersIncluded": [
+      "Color & Appearance",
+      "Specific Gravity",
+      "pH",
+      "Protein/Albumin",
+      "Glucose",
+      "Ketones",
+      "Pus Cells (Leukocytes)",
+      "RBCs",
+      "Epithelial Cells",
+      "Casts & Crystals",
+      "Bacteria"
+    ],
+    "sampleType": "Urine Mid-Stream Clean Catch (20 ml)",
+    "fastingRequired": false,
+    "preparationNote": "First morning midstream clean catch sample in sterile container provided.",
+    "turnaroundTime": "4 Hours",
+    "priceInr": 200,
+    "accreditation": "NABL Certified"
+  }
+]

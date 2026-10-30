@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareConnect360 - VirtualCare Telemedicine Platform</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
+  
+  <!-- DNS Preconnect for High-Speed Asset Resolution -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- Non-blocking Defer for Heavy External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=5.0">
+
+  <!-- Floating Toast & Notification Engine -->
+  <script src="toast-notification.js?v=5.0"></script>
+
+  <!-- Immediate Global Action Handlers (Zero-Latency Button Binding) -->
+  <script>
+    window.openDoctorBookingModal = window.openDoctorBookingModal || function(docId, slot) {
+      const modal = document.getElementById("bookingModal");
+      if (modal) {
+        modal.classList.add("active");
+        modal.style.display = "flex";
+      }
+    };
+    window.openBookingModal = window.openDoctorBookingModal;
+    window.closeDoctorBookingModal = window.closeDoctorBookingModal || function() {
+      const modal = document.getElementById("bookingModal");
+      if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+      }
+    };
+    window.closeBookingModal = window.closeDoctorBookingModal;
+    window.openExploreConsultModal = function() {
+      const modal = document.getElementById("exploreConsultModal");
+      if (modal) {
+        modal.classList.add("active");
+        modal.style.display = "flex";
+      }
+    };
+    window.closeExploreConsultModal = function() {
+      const modal = document.getElementById("exploreConsultModal");
+      if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+      }
+    };
+    window.selectConsultSpecialty = function(deptName) {
+      window.closeExploreConsultModal();
+      let matchingCard = null;
+      document.querySelectorAll(".squircle-dept-card").forEach(c => {
+        if (c.textContent.toLowerCase().includes(deptName.toLowerCase()) || 
+            (deptName.includes("General") && c.textContent.includes("Medicine"))) {
+          matchingCard = c;
+        }
+      });
+      if (window.filterDoctorsByDept) {
+        window.filterDoctorsByDept(deptName, matchingCard);
+      }
+      const sec = document.getElementById("doctorsSection");
+      if (sec) {
+        setTimeout(() => sec.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
+    };
+    window.selectConsultDisease = function(symptomOrTag) {
+      window.closeExploreConsultModal();
+      const searchInput = document.getElementById("doctorSearchInput");
+      if (searchInput) {
+        searchInput.value = symptomOrTag;
+      }
+      if (window.handleDoctorSearch) {
+        window.handleDoctorSearch();
+      }
+      const sec = document.getElementById("doctorsSection");
+      if (sec) {
+        setTimeout(() => sec.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
+    };
+    window.handleExploreSearchSubmit = function(event) {
+      if (event) event.preventDefault();
+      const val = (document.getElementById("exploreSearchInput")?.value || "").trim();
+      window.closeExploreConsultModal();
+      const searchInput = document.getElementById("doctorSearchInput");
+      if (searchInput) {
+        searchInput.value = val;
+      }
+      if (window.handleDoctorSearch) {
+        window.handleDoctorSearch();
+      }
+      const sec = document.getElementById("doctorsSection");
+      if (sec) {
+        setTimeout(() => sec.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
+    };
+    window.filterDoctorsByDept = function(dept, el) {
+      if (window._moduleFilterDoctorsByDept) {
+        return window._moduleFilterDoctorsByDept(dept, el);
+      }
+      const isAlreadyActive = el && el.classList.contains("active");
+      document.querySelectorAll(".squircle-dept-card, .circle-dept-btn").forEach(c => c.classList.remove("active"));
+      if (!isAlreadyActive && dept !== "All" && el) {
+        el.classList.add("active");
+      }
+      const sec = document.getElementById("doctorsSection");
+      if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    window.handleHeroQuickBooking = window.handleHeroQuickBooking || function(event) {
+      event.preventDefault();
+      const dept = document.getElementById("nbcDeptSelect") ? document.getElementById("nbcDeptSelect").value : "General Physician";
+      const name = document.getElementById("nbcPatientName") ? document.getElementById("nbcPatientName").value.trim() : "";
+      const phone = document.getElementById("nbcPatientPhone") ? document.getElementById("nbcPatientPhone").value.trim() : "";
+      const city = document.getElementById("nbcCitySelect") ? document.getElementById("nbcCitySelect").value : "Delhi NCR";
+      const date = document.getElementById("nbcDateInput") ? document.getElementById("nbcDateInput").value : "";
+      
+      if (!name || !phone) {
+        if (window.showToast) window.showToast("Please enter your name and 10-digit mobile number.", "warning");
+        return;
+      }
+      
+      const doctor = (window.DOC_DATABASE && window.DOC_DATABASE.find(d => d.dept === dept || (d.specialty && d.specialty.includes(dept)))) || (window.DOC_DATABASE && window.DOC_DATABASE[0]) || { id: "doc-in-101", name: "Consulting Specialist" };
+      
+      if (window.openDoctorBookingModal) {
+        window.openDoctorBookingModal(doctor.id);
+        setTimeout(() => {
+          const pName = document.getElementById("bookingPatientName");
+          const pPhone = document.getElementById("bookingPatientPhone");
+          const pDate = document.getElementById("bookingDateInput");
+          if (pName) pName.value = name;
+          if (pPhone) pPhone.value = phone;
+          if (pDate && date) pDate.value = date;
+        }, 150);
+      } else {
+        if (window.showToast) window.showToast(`Consultation request received for ${name}! Care team will connect in 15 mins.`, "success");
+      }
+    };
+    window.toggleFaqItem = window.toggleFaqItem || function(element) {
+      const isActive = element.classList.contains("active");
+      document.querySelectorAll(".faq-accordion-item").forEach(item => item.classList.remove("active"));
+      if (!isActive) {
+        element.classList.add("active");
+      }
+    };
+  </script>
+</head>
+<body>
+
+  <!-- Outer Rounded Canvas (Inspired by Modern Healthcare Layout) -->
+  <div class="page-canvas-wrapper">
+
+    <!-- Top Minimalist Clean Navigation (MFine Style) -->
+    <header class="site-header-clean">
+      <div class="navbar-clean">
+        <a href="index.html" class="brand-clean">
+          <div class="brand-logo-mark"><img src="logo.svg?v=2" alt="CareConnect360 Logo"></div>
+          <div class="brand-name">CareConnect<span>360</span></div>
+        </a>
+
+        <!-- Clean Text Navigation Links -->
+        <nav class="nav-links-clean">
+          <a href="#servicesSection">Our Services</a>
+          <a href="#doctorsSection">Find Doctors</a>
+          <a href="#departmentsSection">Specialties</a>
+          <a href="dashboard.html">My Portal</a>
+        </nav>
+
+        <!-- Right Action / Auth -->
+        <div class="nav-right-clean">
+          <div id="navAuthControls"></div>
+          <button type="button" class="btn-clean-cta" onclick="window.openExploreConsultModal()">
+            Consult Now
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Desktop Hero Section (Exact MFine Reference Presentation) -->
+    <section class="mfine-hero-section desktop-only-view">
+      <div class="mfine-hero-bg-texture"></div>
+
+      <div class="mfine-hero-container">
+        <!-- Left: Crisp Value Proposition & High-Converting Coral CTA -->
+        <div class="mfine-hero-left">
+          <p class="mfine-hero-kicker">The right care, is wherever you are.</p>
+          
+          <h1 class="mfine-hero-headline">
+            Consult India’s Top<br>Doctors Online.
+          </h1>
+
+          <!-- Single Coral/Orange CTA Button -->
+          <div class="mfine-cta-wrap">
+            <button type="button" class="mfine-coral-btn" onclick="window.openExploreConsultModal()">
+              <span>Consult Now</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- Clean Trust Indicators Row -->
+          <div class="mfine-trust-row">
+            <span><i class="fas fa-star text-amber"></i> 4.9/5 Rating (50k+ Patients)</span>
+            <span class="trust-dot">•</span>
+            <span><i class="fas fa-certificate text-teal"></i> 100% MCI Verified</span>
+            <span class="trust-dot">•</span>
+            <span><i class="fas fa-video text-blue"></i> Instant Video OPD</span>
+          </div>
+        </div>
+
+        <!-- Right: Doctors Standing Seamlessly Grounded on White Canvas -->
+        <div class="mfine-hero-right">
+          <div class="mfine-doctors-wrapper">
+            <picture>
+              <source srcset="mfine-doctors-cropped.webp?v=3" type="image/webp">
+              <img src="mfine-doctors-cropped.png?v=3" alt="Consult India's Top Doctors - CareConnect360" class="mfine-doctors-img" loading="eager" fetchpriority="high">
+            </picture>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Core Service Gateway Strips Beneath Hero -->
+    <section class="container desktop-only-view" style="margin: 40px auto 30px;">
+      <div class="hero-portal-services-grid" style="max-width: 100%; grid-template-columns: repeat(4, 1fr);">
+        <!-- Service 1: Instant Video OPD -->
+        <a href="#doctorsSection" class="portal-service-tile" data-3d-tilt onclick="window.filterDoctorsByDept('All')">
+          <div class="tile-icon-box teal">
+            <i class="fas fa-video"></i>
+          </div>
+          <div class="tile-text-content">
+            <h4>Instant Video OPD</h4>
+            <p>Connect with senior MDs in 10 mins</p>
+            <span class="tile-link-tag">Consult Now <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </a>
+
+        <!-- Service 2: In-Clinic Hospital Visit -->
+        <a href="#doctorsSection" class="portal-service-tile" data-3d-tilt onclick="window.filterDoctorsByDept('All')">
+          <div class="tile-icon-box blue">
+            <i class="fas fa-hospital-user"></i>
+          </div>
+          <div class="tile-text-content">
+            <h4>In-Clinic Visit</h4>
+            <p>Confirmed hospital slots with zero wait</p>
+            <span class="tile-link-tag">Book Slot <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </a>
+
+        <!-- Service 3: Lab Tests & Diagnostics -->
+        <a href="#doctorsSection" class="portal-service-tile" data-3d-tilt>
+          <div class="tile-icon-box emerald">
+            <i class="fas fa-flask-vial"></i>
+          </div>
+          <div class="tile-text-content">
+            <h4>Lab Tests at Home</h4>
+            <p>Certified pickup &amp; digital reports</p>
+            <span class="tile-link-tag">Book Test <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </a>
+
+        <!-- Service 4: 24/7 Emergency Care -->
+        <a href="tel:18002660360" class="portal-service-tile" data-3d-tilt>
+          <div class="tile-icon-box amber">
+            <i class="fas fa-truck-medical"></i>
+          </div>
+          <div class="tile-text-content">
+            <h4>24/7 Emergency</h4>
+            <p>Immediate triage &amp; ambulance support</p>
+            <span class="tile-link-tag">Emergency Call <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Mobile-Only Hero Banner ("Looking for desired doctor?") -->
+    <section class="container mobile-only-view" style="margin-top: 14px;">
+      <div class="mobile-app-banner-card">
+        <div class="banner-text-side">
+          <div class="banner-greeting-chip">
+            <i class="fas fa-sparkles"></i> 24/7 Virtual OPD Active
+          </div>
+          <h2 class="banner-title-text">Looking for desired doctor?</h2>
+          <a href="#doctorsSection" class="banner-search-pill-btn">
+            <i class="fas fa-search"></i> Search Now
+          </a>
+        </div>
+        <div class="banner-icon-badge-box">
+          <i class="fas fa-stethoscope"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1 for Desktop: Our Clinical Departments (Squircle Cards) -->
+    <section class="container desktop-only-view" id="departmentsSection">
+      <div class="section-headline-center">
+        <h2>Clinical Specialty Departments</h2>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Choose a specialty department to explore verified specialists, consult fees, and OPD timings</p>
+      </div>
+
+      <div class="departments-squircle-grid">
+        <!-- Squircle 1: Emergency & General Care -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Internal Medicine', this)">
+          <div class="dept-icon-circle">
+            <i class="fas fa-stethoscope"></i>
+          </div>
+          <h4>Internal Medicine</h4>
+          <p>Fever, Viral, Infections & OPD</p>
+        </div>
+
+        <!-- Squircle 2: Pediatric Department -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Pediatrics', this)">
+          <div class="dept-icon-circle">
+            <i class="fas fa-baby"></i>
+          </div>
+          <h4>Pediatrics</h4>
+          <p>Child Health, Growth & Vaccines</p>
+        </div>
+
+        <!-- Squircle 3: Cardiology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Cardiology', this)">
+          <div class="dept-icon-circle">
+            <i class="fas fa-heart-pulse"></i>
+          </div>
+          <h4>Cardiology</h4>
+          <p>Heart Health, BP & Chest Care</p>
+        </div>
+
+        <!-- Squircle 4: Dermatology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Dermatology', this)">
+          <div class="dept-icon-circle">
+            <i class="fas fa-spa"></i>
+          </div>
+          <h4>Dermatology</h4>
+          <p>Skin, Hair, Acne & Allergies</p>
+        </div>
+
+        <!-- Squircle 5: Neurology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Neurology', this)">
+          <div class="dept-icon-circle">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h4>Neurology</h4>
+          <p>Migraines, Vertigo & Nerves</p>
+        </div>
+
+        <!-- Squircle 6: Orthopedics -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Orthopedics', this)">
+          <div class="dept-icon-circle">
+            <i class="fas fa-bone"></i>
+          </div>
+          <h4>Orthopedics</h4>
+          <p>Joints, Spine & Bone Health</p>
+        </div>
+
+        <!-- Squircle 7: Obstetrics & Gynecology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Gynecologist', this)">
+          <div class="dept-icon-circle" style="color: #f43f5e; background: #fff1f2;">
+            <i class="fas fa-female"></i>
+          </div>
+          <h4>Gynecology</h4>
+          <p>Pregnancy, PCOS & Women's Health</p>
+        </div>
+
+        <!-- Squircle 8: ENT -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('ENT Specialist', this)">
+          <div class="dept-icon-circle" style="color: #0284c7; background: #f0f9ff;">
+            <i class="fas fa-head-side-cough"></i>
+          </div>
+          <h4>ENT Specialist</h4>
+          <p>Sinusitis, Ear Ache & Tonsils</p>
+        </div>
+
+        <!-- Squircle 9: Gastroenterology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Gastroenterologist', this)">
+          <div class="dept-icon-circle" style="color: #d97706; background: #fffbeb;">
+            <i class="fas fa-disease"></i>
+          </div>
+          <h4>Gastroenterology</h4>
+          <p>Acidity, GERD, Liver & Digestion</p>
+        </div>
+
+        <!-- Squircle 10: Psychiatry -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Psychiatrist', this)">
+          <div class="dept-icon-circle" style="color: #8b5cf6; background: #f5f3ff;">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h4>Psychiatry</h4>
+          <p>Anxiety, Depression, Sleep & Stress</p>
+        </div>
+
+        <!-- Squircle 11: Pulmonology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Pulmonologist', this)">
+          <div class="dept-icon-circle" style="color: #0d9488; background: #f0fdfa;">
+            <i class="fas fa-lungs"></i>
+          </div>
+          <h4>Pulmonology</h4>
+          <p>Asthma, Chronic Cough & Lungs</p>
+        </div>
+
+        <!-- Squircle 12: Ophthalmology -->
+        <div class="squircle-dept-card" data-3d-tilt onclick="window.filterDoctorsByDept('Ophthalmologist', this)">
+          <div class="dept-icon-circle" style="color: #0284c7; background: #f0f9ff;">
+            <i class="fas fa-eye"></i>
+          </div>
+          <h4>Ophthalmology</h4>
+          <p>Eye Strain, Vision & Cataract</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1 for Mobile: "Find your doctor" Pastel Circular Categories (Screen 2 & 5) -->
+    <section class="container mobile-only-view" id="departmentsSectionMobile">
+      <div class="find-doctor-header-row">
+        <h3>Find your doctor</h3>
+        <a href="#doctorsSection" class="see-all-link" onclick="window.filterDoctorsByDept('All', this)">
+          See All <i class="fas fa-chevron-right" style="font-size: 11px;"></i>
+        </a>
+      </div>
+
+      <div class="pastel-category-grid">
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Neurology', this)">
+          <div class="circle-icon-badge bg-pastel-pink"><i class="fas fa-brain"></i></div>
+          <div class="circle-dept-name">Neurology</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Cardiology', this)">
+          <div class="circle-icon-badge bg-pastel-rose"><i class="fas fa-heart-pulse"></i></div>
+          <div class="circle-dept-name">Cardiology</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Orthopedics', this)">
+          <div class="circle-icon-badge bg-pastel-peach"><i class="fas fa-bone"></i></div>
+          <div class="circle-dept-name">Orthopedics</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Internal Medicine', this)">
+          <div class="circle-icon-badge bg-pastel-yellow"><i class="fas fa-vial"></i></div>
+          <div class="circle-dept-name">Pathology</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Pediatrics', this)">
+          <div class="circle-icon-badge bg-pastel-mint"><i class="fas fa-baby"></i></div>
+          <div class="circle-dept-name">Pediatrics</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Dermatology', this)">
+          <div class="circle-icon-badge bg-pastel-purple"><i class="fas fa-spa"></i></div>
+          <div class="circle-dept-name">Dermatology</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Neurology', this)">
+          <div class="circle-icon-badge bg-pastel-blue"><i class="fas fa-head-side-virus"></i></div>
+          <div class="circle-dept-name">Psychiatry</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+
+        <div class="circle-dept-btn" onclick="window.filterDoctorsByDept('Internal Medicine', this)">
+          <div class="circle-icon-badge bg-pastel-teal"><i class="fas fa-stethoscope"></i></div>
+          <div class="circle-dept-name">General Care</div>
+          <div class="circle-dept-count">1 Specialist</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Featured Clinical Services (From Reference Layout) -->
+    <section class="container" id="servicesSection">
+      <div class="section-headline-center">
+        <h2>Comprehensive Telemedicine Services</h2>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">High-standard virtual healthcare infrastructure built for accessibility across India</p>
+      </div>
+
+      <div class="services-image-grid">
+        <!-- Service Card 1 -->
+        <div class="service-feature-card">
+          <div class="service-card-image-wrap">
+            <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=600&auto=format&fit=crop&q=80" alt="HD Teleconsultation">
+          </div>
+          <div class="service-card-body">
+            <h4>Encrypted HD Video Consultations</h4>
+            <p>Peer-to-peer WebRTC video rooms powered by Agora RTC. Zero external downloads, low-latency streaming, and live doctor interaction.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 2 -->
+        <div class="service-feature-card">
+          <div class="service-card-image-wrap">
+            <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&auto=format&fit=crop&q=80" alt="Digital e-Prescription">
+          </div>
+          <div class="service-card-body">
+            <h4>Verified Digital e-Prescriptions</h4>
+            <p>Statutory medical letterheads signed with MCI registration numbers and tamper-evident QR codes for instant pharmacy verification.</p>
+          </div>
+        </div>
+
+        <!-- Service Card 3 -->
+        <div class="service-feature-card">
+          <div class="service-card-image-wrap">
+            <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&auto=format&fit=crop&q=80" alt="EHR Records & Vitals">
+          </div>
+          <div class="service-card-body">
+            <h4>Electronic Health Records & Vitals</h4>
+            <p>Integrated digital health lockers tracking Blood Pressure, Pulse, SpO2, and diagnostic lab reports accessible during consultations.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Popular Doctors Directory (From Reference Screen 2 & 6) -->
+    <section class="container doctor-directory-section" id="doctorsSection">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 22px; font-weight: 800; color: #0f172a;">Credentialed Senior Specialists</h2>
+          <span style="font-size: 13px; color: var(--text-muted);" id="doctorResultsCount">20 verified senior specialists available for consultation</span>
+        </div>
+
+        <div class="doctor-search-box-wrap" style="display: flex; gap: 8px; align-items: center; max-width: 100%;">
+          <div style="position: relative; flex: 1;">
+            <i class="fas fa-search" style="position: absolute; left: 12px; top: 11px; color: var(--text-muted); font-size: 13px;"></i>
+            <input type="text" id="doctorSearchInput" placeholder="Search doctor by name, specialty, or symptom..." style="padding: 9px 12px 9px 34px; border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 13px; width: 100%; min-width: 200px; max-width: 360px; outline: none; background: #ffffff;">
+          </div>
+          <button class="btn btn-teal btn-sm" id="doctorSearchBtn" style="padding: 9px 16px; flex-shrink: 0;">Search</button>
+        </div>
+      </div>
+
+      <!-- Doctor Cards Container -->
+      <div class="doctor-listing-grid" id="doctorListingContainer">
+
+        <!-- Doctor 1: Dr. Ramesh Chandra Gupta -->
+        <article class="doctor-card-modern">
+          <div class="doc-avatar-box">
+            <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop&q=80" alt="Dr. Ramesh Chandra Gupta">
+            <span class="doc-verified-check" title="Medical Council of India Verified"><i class="fas fa-check"></i></span>
+          </div>
+
+          <div class="doc-details-col">
+            <h3 class="doc-name-title">Dr. Ramesh Chandra Gupta</h3>
+            <div class="doc-specialty-sub">General Physician / Internal Medicine</div>
+            <div class="doc-degree-text">MBBS, MD - General Medicine (Gold Medalist) &bull; 18 years experience</div>
+            <div class="doc-hospital-tag">
+              <i class="fas fa-hospital" style="color: #0d9488;"></i>
+              <span>Fortis Escorts Hospital & Healthcare Clinic, New Delhi</span>
+            </div>
+            <div class="doc-ratings-row">
+              <span class="rating-tag-pill"><i class="fas fa-star" style="font-size: 10px;"></i> 4.9</span>
+              <span class="stories-text">312 Patient Stories &bull; 99% Recommended</span>
+            </div>
+          </div>
+
+          <div class="doc-booking-action-col">
+            <div class="doc-fee-box">
+              <span>Consultation Fee</span>
+              <strong>₹500</strong>
+            </div>
+            <div>
+              <div class="doc-avail-status">
+                <span class="pulse-dot"></span>
+                <span>Available Today at 4:30 PM</span>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="window.openDoctorBookingModal('doc-in-101')">
+                Book Video Consult
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Doctor 2: Dr. Priya S. Sharma -->
+        <article class="doctor-card-modern">
+          <div class="doc-avatar-box">
+            <img src="https://images.unsplash.com/photo-1664575602554-2087b04935a5?w=400&auto=format&fit=crop&q=80" alt="Dr. Priya S. Sharma">
+            <span class="doc-verified-check" title="Medical Council of India Verified"><i class="fas fa-check"></i></span>
+          </div>
+
+          <div class="doc-details-col">
+            <h3 class="doc-name-title">Dr. Priya S. Sharma</h3>
+            <div class="doc-specialty-sub">Consultant Cardiologist</div>
+            <div class="doc-degree-text">MBBS, MD (Medicine), DM (Cardiology) - AIIMS New Delhi &bull; 14 years exp</div>
+            <div class="doc-hospital-tag">
+              <i class="fas fa-hospital" style="color: #0d9488;"></i>
+              <span>Max Super Speciality Hospital, Saket, New Delhi</span>
+            </div>
+            <div class="doc-ratings-row">
+              <span class="rating-tag-pill"><i class="fas fa-star" style="font-size: 10px;"></i> 4.9</span>
+              <span class="stories-text">240 Patient Stories &bull; 98% Recommended</span>
+            </div>
+          </div>
+
+          <div class="doc-booking-action-col">
+            <div class="doc-fee-box">
+              <span>Consultation Fee</span>
+              <strong>₹800</strong>
+            </div>
+            <div>
+              <div class="doc-avail-status">
+                <span class="pulse-dot"></span>
+                <span>Available Today at 5:15 PM</span>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="window.openDoctorBookingModal('doc-in-102')">
+                Book Video Consult
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Doctor 3: Dr. Sandeep K. Sundaram -->
+        <article class="doctor-card-modern">
+          <div class="doc-avatar-box">
+            <img src="https://images.unsplash.com/photo-1622902046580-2b47f47f5471?w=400&auto=format&fit=crop&q=80" alt="Dr. Sandeep K. Sundaram">
+            <span class="doc-verified-check" title="Medical Council of India Verified"><i class="fas fa-check"></i></span>
+          </div>
+
+          <div class="doc-details-col">
+            <h3 class="doc-name-title">Dr. Sandeep K. Sundaram</h3>
+            <div class="doc-specialty-sub">Consultant Dermatologist</div>
+            <div class="doc-degree-text">MBBS, DVD, MD (Dermatology, Venereology & Leprosy) &bull; 11 years exp</div>
+            <div class="doc-hospital-tag">
+              <i class="fas fa-hospital" style="color: #0d9488;"></i>
+              <span>Apollo Spectra Hospitals, Kailash Colony, New Delhi</span>
+            </div>
+            <div class="doc-ratings-row">
+              <span class="rating-tag-pill"><i class="fas fa-star" style="font-size: 10px;"></i> 4.8</span>
+              <span class="stories-text">185 Patient Stories &bull; 96% Recommended</span>
+            </div>
+          </div>
+
+          <div class="doc-booking-action-col">
+            <div class="doc-fee-box">
+              <span>Consultation Fee</span>
+              <strong>₹600</strong>
+            </div>
+            <div>
+              <div class="doc-avail-status">
+                <span class="pulse-dot"></span>
+                <span>Available Tomorrow at 10:00 AM</span>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="window.openDoctorBookingModal('doc-in-103')">
+                Book Video Consult
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Doctor 4: Dr. Vikramaditya Rathore -->
+        <article class="doctor-card-modern">
+          <div class="doc-avatar-box">
+            <img src="https://images.unsplash.com/photo-1638202993928-7267aad84c31?w=400&auto=format&fit=crop&q=80" alt="Dr. Vikramaditya Rathore">
+            <span class="doc-verified-check" title="Medical Council of India Verified"><i class="fas fa-check"></i></span>
+          </div>
+
+          <div class="doc-details-col">
+            <h3 class="doc-name-title">Dr. Vikramaditya Rathore</h3>
+            <div class="doc-specialty-sub">Consultant Neurologist</div>
+            <div class="doc-degree-text">MBBS, MD, DM (Neurology) - NIMHANS &bull; 16 years experience</div>
+            <div class="doc-hospital-tag">
+              <i class="fas fa-hospital" style="color: #0d9488;"></i>
+              <span>Indraprastha Apollo Hospitals, Sarita Vihar, New Delhi</span>
+            </div>
+            <div class="doc-ratings-row">
+              <span class="rating-tag-pill"><i class="fas fa-star" style="font-size: 10px;"></i> 4.9</span>
+              <span class="stories-text">142 Patient Stories &bull; 99% Recommended</span>
+            </div>
+          </div>
+
+          <div class="doc-booking-action-col">
+            <div class="doc-fee-box">
+              <span>Consultation Fee</span>
+              <strong>₹1000</strong>
+            </div>
+            <div>
+              <div class="doc-avail-status">
+                <span class="pulse-dot"></span>
+                <span>Available Tomorrow at 11:30 AM</span>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="window.openDoctorBookingModal('doc-in-104')">
+                Book Video Consult
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Doctor 5: Dr. Suniti Verma -->
+        <article class="doctor-card-modern">
+          <div class="doc-avatar-box">
+            <img src="https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400&auto=format&fit=crop&q=80" alt="Dr. Suniti Verma">
+            <span class="doc-verified-check" title="Medical Council of India Verified"><i class="fas fa-check"></i></span>
+          </div>
+
+          <div class="doc-details-col">
+            <h3 class="doc-name-title">Dr. Suniti Verma</h3>
+            <div class="doc-specialty-sub">Consultant Pediatrician (Child Specialist)</div>
+            <div class="doc-degree-text">MBBS, DCH, MD (Pediatrics) - KGMU &bull; 12 years experience</div>
+            <div class="doc-hospital-tag">
+              <i class="fas fa-hospital" style="color: #0d9488;"></i>
+              <span>Rainbow Children's Hospital, Malviya Nagar, New Delhi</span>
+            </div>
+            <div class="doc-ratings-row">
+              <span class="rating-tag-pill"><i class="fas fa-star" style="font-size: 10px;"></i> 4.8</span>
+              <span class="stories-text">215 Patient Stories &bull; 97% Recommended</span>
+            </div>
+          </div>
+
+          <div class="doc-booking-action-col">
+            <div class="doc-fee-box">
+              <span>Consultation Fee</span>
+              <strong>₹550</strong>
+            </div>
+            <div>
+              <div class="doc-avail-status">
+                <span class="pulse-dot"></span>
+                <span>Available Today at 6:00 PM</span>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="window.openDoctorBookingModal('doc-in-105')">
+                Book Video Consult
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Doctor 6: Dr. Alok Verma -->
+        <article class="doctor-card-modern">
+          <div class="doc-avatar-box">
+            <img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&auto=format&fit=crop&q=80" alt="Dr. Alok Verma">
+            <span class="doc-verified-check" title="Medical Council of India Verified"><i class="fas fa-check"></i></span>
+          </div>
+
+          <div class="doc-details-col">
+            <h3 class="doc-name-title">Dr. Alok Verma</h3>
+            <div class="doc-specialty-sub">Senior Orthopedic & Joint Replacement Surgeon</div>
+            <div class="doc-degree-text">MBBS, MS (Orthopedics), M.Ch (Joint Replacement) &bull; 20 years exp</div>
+            <div class="doc-hospital-tag">
+              <i class="fas fa-hospital" style="color: #0d9488;"></i>
+              <span>Medanta - The Medicity, Gurugram</span>
+            </div>
+            <div class="doc-ratings-row">
+              <span class="rating-tag-pill"><i class="fas fa-star" style="font-size: 10px;"></i> 4.7</span>
+              <span class="stories-text">190 Patient Stories &bull; 95% Recommended</span>
+            </div>
+          </div>
+
+          <div class="doc-booking-action-col">
+            <div class="doc-fee-box">
+              <span>Consultation Fee</span>
+              <strong>₹750</strong>
+            </div>
+            <div>
+              <div class="doc-avail-status">
+                <span class="pulse-dot"></span>
+                <span>Available Tomorrow at 2:00 PM</span>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 13px;" onclick="window.openDoctorBookingModal('doc-in-106')">
+                Book Video Consult
+              </button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Nivaan-Inspired Comparison Section: CareConnect360 vs Traditional Hospitals -->
+    <section class="container" style="margin: 44px auto 24px;">
+      <div class="section-headline-center">
+        <span class="subhead-pill"><i class="fas fa-balance-scale"></i> The CareConnect360 Advantage</span>
+        <h2>Why Patients Choose Us Over Traditional Hospitals</h2>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Experience modern, transparent, and patient-first clinical healthcare</p>
+      </div>
+
+      <div class="comparison-card-wrapper">
+        <div class="comparison-table-responsive">
+          <table class="clinical-comparison-table">
+            <thead>
+              <tr>
+                <th class="feature-col">Clinical Feature</th>
+                <th class="careconnect-col">
+                  <div class="table-brand-badge">
+                    <i class="fas fa-shield-heart"></i> CareConnect360
+                  </div>
+                </th>
+                <th class="regular-col">Regular Clinics &amp; Hospitals</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="feature-name">
+                  <strong><i class="fas fa-clock text-teal"></i> Waiting Time</strong>
+                  <span>Queue duration before consultation</span>
+                </td>
+                <td class="careconnect-cell">
+                  <div class="cell-highlight positive">
+                    <i class="fas fa-check-circle"></i> Instant Confirmed Slot (Zero Queue)
+                  </div>
+                </td>
+                <td class="regular-cell">
+                  <span class="cell-negative"><i class="fas fa-times-circle"></i> 1.5 to 3 Hours in crowded rooms</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="feature-name">
+                  <strong><i class="fas fa-user-md text-teal"></i> Specialist Calibre</strong>
+                  <span>Credentials and experience</span>
+                </td>
+                <td class="careconnect-cell">
+                  <div class="cell-highlight positive">
+                    <i class="fas fa-check-circle"></i> Senior Ex-Apollo/Fortis Consultants (15+ Yrs)
+                  </div>
+                </td>
+                <td class="regular-cell">
+                  <span class="cell-negative"><i class="fas fa-times-circle"></i> Frequently assigned to junior resident doctors</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="feature-name">
+                  <strong><i class="fas fa-indian-rupee-sign text-teal"></i> Pricing Transparency</strong>
+                  <span>Consultation &amp; procedure fees</span>
+                </td>
+                <td class="careconnect-cell">
+                  <div class="cell-highlight positive">
+                    <i class="fas fa-check-circle"></i> 100% Upfront (₹399 - ₹600 Fixed)
+                  </div>
+                </td>
+                <td class="regular-cell">
+                  <span class="cell-negative"><i class="fas fa-times-circle"></i> Hidden registration &amp; file charges</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="feature-name">
+                  <strong><i class="fas fa-file-prescription text-teal"></i> e-Prescription</strong>
+                  <span>Medical report &amp; dosage guide</span>
+                </td>
+                <td class="careconnect-cell">
+                  <div class="cell-highlight positive">
+                    <i class="fas fa-check-circle"></i> Verifiable ABDM Digital PDF with QR Code
+                  </div>
+                </td>
+                <td class="regular-cell">
+                  <span class="cell-negative"><i class="fas fa-times-circle"></i> Often illegible handwritten paper slips</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="feature-name">
+                  <strong><i class="fas fa-comments text-teal"></i> Follow-Up Support</strong>
+                  <span>Post-consultation questions</span>
+                </td>
+                <td class="careconnect-cell">
+                  <div class="cell-highlight positive">
+                    <i class="fas fa-check-circle"></i> Free 7-Day Digital Follow-Up via Chat
+                  </div>
+                </td>
+                <td class="regular-cell">
+                  <span class="cell-negative"><i class="fas fa-times-circle"></i> Full consultation fee charged for follow-ups</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nivaan-Inspired Interactive FAQ Accordion Section -->
+    <section class="container" style="margin: 40px auto 36px;">
+      <div class="section-headline-center">
+        <span class="subhead-pill"><i class="fas fa-circle-question"></i> Patient Queries</span>
+        <h2>Frequently Asked Questions</h2>
+        <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 4px;">Clear answers to common questions about appointments, doctors, and teleconsultations</p>
+      </div>
+
+      <div class="faq-accordion-grid">
+        <div class="faq-accordion-item active" onclick="window.toggleFaqItem(this)">
+          <div class="faq-question-row">
+            <h4><i class="fas fa-circle-dot text-teal"></i> How quickly can I speak with a specialist?</h4>
+            <span class="faq-toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer-block">
+            <p>For Virtual Video Consultations, you can connect with a verified specialist within 10 to 15 minutes. For In-Clinic hospital visits, your appointment slot is pre-confirmed with guaranteed zero waiting time at the clinic reception.</p>
+          </div>
+        </div>
+
+        <div class="faq-accordion-item" onclick="window.toggleFaqItem(this)">
+          <div class="faq-question-row">
+            <h4><i class="fas fa-circle-dot text-teal"></i> Are your doctors verified and credentialed?</h4>
+            <span class="faq-toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer-block">
+            <p>Yes, 100% of our consulting physicians and surgeons are Medical Council of India (MCI) credentialed with an average of 15+ years of clinical practice in premier tertiary hospitals such as Apollo, Fortis, AIIMS, and Medanta.</p>
+          </div>
+        </div>
+
+        <div class="faq-accordion-item" onclick="window.toggleFaqItem(this)">
+          <div class="faq-question-row">
+            <h4><i class="fas fa-circle-dot text-teal"></i> Will I receive a valid digital medical prescription?</h4>
+            <span class="faq-toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer-block">
+            <p>Yes. Following your consultation, your doctor issues an ABDM-compliant, digitally signed e-prescription complete with a QR verification code. It is valid across all pharmacies, diagnostic laboratories, and health insurance providers across India.</p>
+          </div>
+        </div>
+
+        <div class="faq-accordion-item" onclick="window.toggleFaqItem(this)">
+          <div class="faq-question-row">
+            <h4><i class="fas fa-circle-dot text-teal"></i> Is free follow-up included with my consultation?</h4>
+            <span class="faq-toggle-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer-block">
+            <p>Yes! Every consultation includes a complimentary 7-day digital follow-up window. You can ask follow-up questions, share test report updates, and check recovery progress with your specialist at no extra charge.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Explore Consultation Modal (Choose Doctors, Specialties & Diseases) -->
+    <div class="modal-backdrop" id="exploreConsultModal" style="display: none;" onclick="if(event.target === this) window.closeExploreConsultModal()">
+      <div class="modal-dialog explore-consult-dialog" style="max-width: 680px;">
+        <div class="modal-head" style="background: #ffffff; border-bottom: 1px solid var(--border); padding: 18px 24px;">
+          <div>
+            <h3 style="font-size: 17.5px; font-weight: 800; color: var(--text-main); margin-bottom: 3px; display: flex; align-items: center; gap: 8px;">
+              <span style="background: #ccfbf1; color: #0d9488; width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">
+                <i class="fas fa-stethoscope"></i>
+              </span>
+              Start Your Online Consultation
+            </h3>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin: 0;">Choose a specialty, select your health concern, or search doctors</p>
+          </div>
+          <button type="button" class="modal-close" onclick="window.closeExploreConsultModal()">&times;</button>
+        </div>
+
+        <div class="modal-content-area" style="padding: 22px 24px; max-height: 78vh; overflow-y: auto;">
+          <!-- Quick Search Bar inside Modal -->
+          <form onsubmit="window.handleExploreSearchSubmit(event)" style="margin-bottom: 22px;">
+            <div style="position: relative; display: flex; align-items: center;">
+              <i class="fas fa-search" style="position: absolute; left: 16px; color: var(--teal); font-size: 14px;"></i>
+              <input type="text" id="exploreSearchInput" class="explore-search-input" placeholder="Search symptoms (fever, migraine, rash), disease, or doctor..." style="width: 100%; padding: 12px 105px 12px 42px; border: 1.5px solid #ccfbf1; border-radius: var(--radius-full); font-size: 13.5px; outline: none; background: #f0fdfa; transition: var(--transition);">
+              <button type="submit" class="btn btn-teal btn-sm" style="position: absolute; right: 6px; padding: 7px 18px; border-radius: var(--radius-full); font-weight: 700;">
+                Search
+              </button>
+            </div>
+          </form>
+
+          <!-- Section 1: Choose by Clinical Specialty -->
+          <div style="margin-bottom: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="font-size: 13px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">
+                <i class="fas fa-hospital-user text-teal" style="margin-right: 6px;"></i> Choose by Clinical Specialty
+              </h4>
+              <span style="font-size: 11.5px; color: #059669; font-weight: 700; background: #ecfdf5; padding: 2px 8px; border-radius: 99px;">
+                MCI Verified Doctors
+              </span>
+            </div>
+
+            <div class="explore-specialties-grid">
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('General Physician')">
+                <div class="explore-spec-icon bg-pastel-teal">
+                  <i class="fas fa-stethoscope"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>General Physician</strong>
+                  <span>Fever, Cold, Viral, Flu, Weakness</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Cardiologist')">
+                <div class="explore-spec-icon bg-pastel-rose">
+                  <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Cardiologist</strong>
+                  <span>Chest Pain, BP, Palpitation, Heart Care</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Dermatologist')">
+                <div class="explore-spec-icon bg-pastel-purple">
+                  <i class="fas fa-spa"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Dermatologist</strong>
+                  <span>Skin Rashes, Acne, Hair Fall, Allergy</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Pediatrician')">
+                <div class="explore-spec-icon bg-pastel-mint">
+                  <i class="fas fa-baby"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Pediatrician</strong>
+                  <span>Child Care, Infant Fever, Nutrition</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Neurologist')">
+                <div class="explore-spec-icon bg-pastel-pink">
+                  <i class="fas fa-brain"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Neurologist</strong>
+                  <span>Migraine, Headache, Vertigo, Nerves</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Orthopedic')">
+                <div class="explore-spec-icon bg-pastel-peach">
+                  <i class="fas fa-bone"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Orthopedics</strong>
+                  <span>Joint Pain, Backache, Knee & Spine</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Gynecologist')">
+                <div class="explore-spec-icon bg-pastel-rose">
+                  <i class="fas fa-female"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Gynecologist</strong>
+                  <span>Pregnancy, PCOS, Periods, Women's Care</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('ENT Specialist')">
+                <div class="explore-spec-icon bg-pastel-teal">
+                  <i class="fas fa-head-side-cough"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>ENT Specialist</strong>
+                  <span>Sinusitis, Ear Ache, Throat & Tonsils</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Gastroenterologist')">
+                <div class="explore-spec-icon bg-pastel-peach">
+                  <i class="fas fa-disease"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Gastroenterologist</strong>
+                  <span>Acidity, GERD, Liver & Digestion</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Psychiatrist')">
+                <div class="explore-spec-icon bg-pastel-purple">
+                  <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Psychiatrist</strong>
+                  <span>Anxiety, Depression, Sleep & Stress</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Pulmonologist')">
+                <div class="explore-spec-icon bg-pastel-teal">
+                  <i class="fas fa-lungs"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Pulmonologist</strong>
+                  <span>Asthma, Chronic Cough & Lungs</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+
+              <div class="explore-spec-card" onclick="window.selectConsultSpecialty('Ophthalmologist')">
+                <div class="explore-spec-icon bg-pastel-mint">
+                  <i class="fas fa-eye"></i>
+                </div>
+                <div class="explore-spec-info">
+                  <strong>Ophthalmologist</strong>
+                  <span>Eye Strain, Vision, Dry Eyes, Cataract</span>
+                </div>
+                <i class="fas fa-chevron-right explore-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Choose by Health Concern / Disease -->
+          <div style="margin-bottom: 22px;">
+            <div style="margin-bottom: 12px;">
+              <h4 style="font-size: 13px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">
+                <i class="fas fa-notes-medical text-teal" style="margin-right: 6px;"></i> Common Health Concerns & Symptoms
+              </h4>
+            </div>
+
+            <div class="explore-disease-chips-wrap">
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('fever')">
+                <span class="chip-emoji">🌡️</span>
+                <span>Fever & Viral Flu</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('chest pain')">
+                <span class="chip-emoji">🫀</span>
+                <span>Chest Pain & BP</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('rash')">
+                <span class="chip-emoji">🧴</span>
+                <span>Skin Rashes & Acne</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('hair fall')">
+                <span class="chip-emoji">💇</span>
+                <span>Hair Fall & Dandruff</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('headache')">
+                <span class="chip-emoji">🧠</span>
+                <span>Headache & Migraine</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('joint pain')">
+                <span class="chip-emoji">🦴</span>
+                <span>Joint & Knee Pain</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('pcos')">
+                <span class="chip-emoji">🌸</span>
+                <span>PCOS & Periods</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('acidity')">
+                <span class="chip-emoji">🤢</span>
+                <span>Acidity & Digestion</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('sinus')">
+                <span class="chip-emoji">👃</span>
+                <span>Sinus & Ear Pain</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('asthma')">
+                <span class="chip-emoji">🫁</span>
+                <span>Asthma & Breathing</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('anxiety')">
+                <span class="chip-emoji">🧘</span>
+                <span>Anxiety & Sleep</span>
+              </button>
+              <button type="button" class="explore-disease-chip" onclick="window.selectConsultDisease('eye')">
+                <span class="chip-emoji">👁️</span>
+                <span>Eye Strain & Vision</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Banner: View All Doctors directly -->
+          <div style="background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 100%); border: 1px solid #ccfbf1; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <strong style="display: block; font-size: 13.5px; color: var(--text-main);">Looking to explore all available specialists?</strong>
+              <span style="font-size: 12px; color: var(--text-muted);">Compare consultation fees, experience, hospitals & ratings</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="window.selectConsultSpecialty('All')" style="padding: 9px 18px; font-weight: 700;">
+              View All Doctors <i class="fas fa-arrow-right" style="font-size: 11px; margin-left: 4px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slot Booking Modal (Doctor Profile & Schedules from Reference Screen 3) -->
+    <div class="modal-backdrop" id="bookingModal" style="display: none;">
+      <div class="modal-dialog" style="max-width: 480px;">
+        <div class="modal-head" style="background: #ffffff; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" class="modal-close" onclick="window.closeDoctorBookingModal()" style="font-size: 15px; color: var(--text-main);">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--text-main);">Doctor Profile</h3>
+          </div>
+          <button type="button" class="modal-close" onclick="window.closeDoctorBookingModal()">&times;</button>
+        </div>
+
+        <div class="modal-content-area" style="padding: 20px;">
+          <!-- Doctor Profile Top Strip -->
+          <div class="modal-profile-header-strip">
+            <div class="modal-doc-avatar-wrap">
+              <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop&q=80" id="modalDocPhoto" alt="Doctor">
+            </div>
+            <div style="flex: 1;">
+              <h4 id="modalDocName" style="font-size: 16px; font-weight: 800; color: var(--text-main); margin-bottom: 2px;">Dr. Ramesh Chandra Gupta</h4>
+              <div id="modalDocSpec" style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;">General Physician &bull; MBBS, MD</div>
+              <div class="star-rating-pill" style="margin-top: 4px;">
+                <i class="fas fa-star" style="color: #f59e0b; font-size: 11px;"></i>
+                <span id="modalDocRating">4.9 (312 reviews)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Specialty Tags Row -->
+          <div class="modal-profile-tags-row">
+            <span class="modal-spec-tag"><i class="fas fa-certificate" style="font-size: 10px;"></i> Specialist</span>
+            <span class="modal-spec-tag" id="modalDocDeptTag">Internal Medicine</span>
+            <span class="modal-spec-tag" id="modalDocHospTag">Fortis Escorts</span>
+          </div>
+
+          <!-- Doctor Biography -->
+          <div class="modal-doc-biography-box">
+            <strong style="color: var(--text-main); font-size: 12px; display: block; margin-bottom: 2px;">Doctor Biography:</strong>
+            <span id="modalDocBio">Senior Specialist with over 18 years of clinical experience in comprehensive diagnostics, preventive healthcare, and virtual telemedicine consultations.</span>
+          </div>
+
+          <!-- Schedules Date Carousel (From Screen 3) -->
+          <div class="modal-section-title-label">
+            <span>Schedules</span>
+            <span id="modalSelectedMonthLabel" style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;"></span>
+          </div>
+          <div class="schedules-date-carousel" id="modalSchedulesCarousel">
+            <!-- Dynamic 7-Day Date Pills will be populated here -->
+          </div>
+          <input type="date" id="bookingDateInput" style="display: none;">
+
+          <!-- Choose Times (Morning / Afternoon / Evening) -->
+          <div class="modal-section-title-label">
+            <span>Choose Times</span>
+          </div>
+          <div class="choose-times-track">
+            <button type="button" class="choose-time-chip" onclick="window.filterSlotPeriods('Morning', this)">Morning</button>
+            <button type="button" class="choose-time-chip active" onclick="window.filterSlotPeriods('Afternoon', this)">Afternoon</button>
+            <button type="button" class="choose-time-chip" onclick="window.filterSlotPeriods('Evening', this)">Evening</button>
+          </div>
+
+          <!-- Slots Title & Grid -->
+          <div class="modal-section-title-label">
+            <span id="activeSlotPeriodTitle">Afternoon Schedule</span>
+          </div>
+          <div class="time-slot-grid" id="modalSlotsContainer" style="grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+            <!-- Slots populated from Firestore -->
+          </div>
+
+          <!-- Clinical Intake & Symptom Triage (MDPI 2025 Standard) -->
+          <div class="modal-section-title-label">
+            <span>Patient Intake &amp; Clinical Triage</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="patientNameInput" placeholder="Patient Full Name" value="Rahul Sharma" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px;">
+            <input type="text" id="patientPhoneInput" placeholder="Mobile (+91)" value="+91 98765 43210" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px;">
+          </div>
+
+          <!-- Quick Symptom Selector Chips -->
+          <div class="symptom-quick-chips">
+            <button type="button" class="symptom-chip-btn active" onclick="window.applyQuickSymptom('Fever, cough & cold', this)">Fever &amp; Cold</button>
+            <button type="button" class="symptom-chip-btn" onclick="window.applyQuickSymptom('Chest tightness & high BP', this)">Chest Discomfort</button>
+            <button type="button" class="symptom-chip-btn" onclick="window.applyQuickSymptom('Skin allergy, rash & itching', this)">Skin Rash</button>
+            <button type="button" class="symptom-chip-btn" onclick="window.applyQuickSymptom('Severe throbbing migraine & nausea', this)">Severe Migraine</button>
+            <button type="button" class="symptom-chip-btn" onclick="window.applyQuickSymptom('Child high fever & vomiting', this)">Child Fever</button>
+          </div>
+
+          <input type="text" id="patientSymptomsInput" oninput="window.evaluateSymptomTriage(this.value)" placeholder="Health concern (e.g. fever, chest pain, rash)" value="Fever, cough & cold" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 8px;">
+
+          <!-- AI Clinical Acuity Triage Card -->
+          <div class="triage-acuity-card" id="triageAcuityCard">
+            <div class="triage-badge-pill level-1" id="triageBadgePill">
+              <i class="fas fa-stethoscope"></i> <span id="triageLevelText">Level 1: Routine OPD</span>
+            </div>
+            <div class="triage-sub-info" id="triageSubInfo">Suitable for Virtual Consultation</div>
+          </div>
+
+          <!-- Consultation Fee Breakdown -->
+          <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
+              <span>Specialist Consultation Fee:</span>
+              <span id="modalDocFee">₹500</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
+              <span>Encrypted WebRTC Platform Fee:</span>
+              <span>₹49</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: var(--text-main); border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 6px;">
+              <span>Total Payable Amount:</span>
+              <span id="modalTotalFee" style="color: var(--teal);">₹549</span>
+            </div>
+          </div>
+
+          <!-- Full Width Book Appointment Button (Screen 3) -->
+          <button type="button" class="btn btn-teal-pill" style="width: 100%; padding: 13px; font-size: 14.5px; justify-content: center; box-shadow: 0 6px 18px rgba(25, 114, 104, 0.35);" onclick="window.initiateBookingFromModal()">
+            <i class="fas fa-lock"></i> Book Appointment (<span id="modalBtnTotalAmount">₹549</span>)
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container"></div>
+
+    <!-- Clean Healthcare Footer -->
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div>CareConnect360 VirtualCare Platform &bull; Delhi NCR</div>
+        <div>24/7 Verified Hospital Specialist Network</div>
+      </div>
+    </footer>
+
+    <!-- Native Mobile Floating Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav">
+      <a href="index.html" class="mobile-nav-item active">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="#doctorsSection" class="mobile-nav-item">
+        <i class="fas fa-user-md"></i>
+        <span>Doctors</span>
+      </a>
+      <a href="javascript:void(0)" onclick="window.openExploreConsultModal()" class="mobile-nav-cta">
+        <i class="fas fa-video"></i>
+        <span>Consult</span>
+      </a>
+      <a href="dashboard.html" class="mobile-nav-item">
+        <i class="fas fa-file-medical-alt"></i>
+        <span>Portal</span>
+      </a>
+      <a href="login.html" class="mobile-nav-item">
+        <i class="fas fa-user-circle"></i>
+        <span>Account</span>
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- End-to-End ES6 Module Integration -->
+  <script type="module">
+    import { initAuthObserver, loginUser, registerUser } from "./auth.js?v=4.1";
+    import { 
+      fetchActiveDoctors, 
+      handleDoctorSearch, 
+      filterDoctorsByDept, 
+      bookFromHeroBar, 
+      syncHeroDepartmentToDoctor,
+      openDoctorBookingModal,
+      closeDoctorBookingModal,
+      initiateBookingFromModal,
+      selectSlotTime
+    } from "./booking.js?v=4.1";
+
+    // Bind both names to window so ANY onclick works immediately
+    window.openDoctorBookingModal = openDoctorBookingModal;
+    window.openBookingModal = openDoctorBookingModal;
+    window.closeDoctorBookingModal = closeDoctorBookingModal;
+    window.closeBookingModal = closeDoctorBookingModal;
+    window.initiateBookingFromModal = initiateBookingFromModal;
+    window.selectSlotTime = selectSlotTime;
+    window.bookFromHeroBar = bookFromHeroBar;
+    window.syncHeroDepartmentToDoctor = syncHeroDepartmentToDoctor;
+    window.filterDoctorsByDept = filterDoctorsByDept;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Initialize Firebase Auth State Observer
+      initAuthObserver();
+
+      // 2. Fetch live active doctors from Firestore
+      fetchActiveDoctors();
+
+      // 3. Setup Search Input Event Listeners
+      const searchInput = document.getElementById("doctorSearchInput");
+      if (searchInput) {
+        searchInput.addEventListener("input", handleDoctorSearch);
+        searchInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleDoctorSearch();
+        });
+      }
+
+      const searchBtn = document.getElementById("doctorSearchBtn");
+      if (searchBtn) {
+        searchBtn.addEventListener("click", handleDoctorSearch);
+      }
+
+      // 4. Default Hero Date
+      const hDate = document.getElementById("heroDateInput");
+      if (hDate) {
+        const today = new Date().toISOString().split("T")[0];
+        hDate.value = today;
+        hDate.min = today;
+      }
+    });
+
+    // Auth Portal Navigation
+    window.openAuthModal = function(role) {
+      window.location.href = role ? `login.html?role=${role}` : "login.html";
+    };
+
+    // ==========================================================================
+    // Mobile App UI Features (Schedules Carousel, Period Filter & Phone Simulator)
+    // ==========================================================================
+    
+    // Generate next 7 days in Doctor Profile Schedules Carousel
+    window.renderSchedulesCarousel = function(baseDateStr) {
+      const carousel = document.getElementById("modalSchedulesCarousel");
+      if (!carousel) return;
+
+      const dateInput = document.getElementById("bookingDateInput");
+      const baseDate = baseDateStr ? new Date(baseDateStr) : new Date();
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      const monthLabel = document.getElementById("modalSelectedMonthLabel");
+      if (monthLabel) {
+        monthLabel.textContent = `${monthNames[baseDate.getMonth()]} ${baseDate.getFullYear()}`;
+      }
+
+      let cardsHtml = "";
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const isoDate = d.toISOString().split("T")[0];
+        const dayNum = d.getDate();
+        const dayName = dayNames[d.getDay()];
+        const isActive = (dateInput && dateInput.value === isoDate) || (i === 0 && !dateInput?.value);
+
+        cardsHtml += `
+          <div class="schedule-day-card ${isActive ? 'active' : ''}" data-date="${isoDate}" onclick="window.selectScheduleDate('${isoDate}', this)">
+            <span class="day-num">${dayNum}</span>
+            <span class="day-name">${dayName}</span>
+          </div>
+        `;
+      }
+      carousel.innerHTML = cardsHtml;
+    };
+
+    window.selectScheduleDate = function(isoDate, el) {
+      document.querySelectorAll(".schedule-day-card").forEach(c => c.classList.remove("active"));
+      if (el) el.classList.add("active");
+      const dateInput = document.getElementById("bookingDateInput");
+      if (dateInput) {
+        dateInput.value = isoDate;
+        dateInput.dispatchEvent(new Event("change"));
+      }
+    };
+
+    // Filter Slot Periods (Morning / Afternoon / Evening)
+    window.filterSlotPeriods = function(period, btn) {
+      document.querySelectorAll(".choose-time-chip").forEach(c => c.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+
+      const title = document.getElementById("activeSlotPeriodTitle");
+      if (title) title.textContent = `${period} Schedule`;
+
+      // Filter slots matching time period
+      const slotBtns = document.querySelectorAll("#modalSlotsContainer .slot-option-btn");
+      let visibleCount = 0;
+      slotBtns.forEach(b => {
+        const text = b.textContent.trim();
+        const isPM = text.includes("PM");
+        const hour = parseInt(text.split(":")[0]);
+
+        let matches = true;
+        if (period === "Morning") {
+          matches = !isPM || (isPM && hour === 12);
+        } else if (period === "Afternoon") {
+          matches = isPM && ((hour >= 12 && hour < 5) || hour === 12);
+        } else if (period === "Evening") {
+          matches = isPM && (hour >= 5 && hour !== 12);
+        }
+
+        b.style.display = matches ? "flex" : "none";
+        if (matches) visibleCount++;
+      });
+
+      // If no slots matched this specific filter, display all available slots so user is never stuck
+      if (visibleCount === 0 && slotBtns.length > 0) {
+        slotBtns.forEach(b => b.style.display = "flex");
+        if (title) title.textContent = `All Available Slots`;
+      }
+    };
+
+    // Quick Symptom and Clinical Triage Handlers (MDPI 2025 Standard)
+    window.applyQuickSymptom = function(symptomText, btn) {
+      document.querySelectorAll(".symptom-chip-btn").forEach(c => c.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      const input = document.getElementById("patientSymptomsInput");
+      if (input) {
+        input.value = symptomText;
+        window.evaluateSymptomTriage(symptomText);
+      }
+    };
+
+    window.evaluateSymptomTriage = function(text) {
+      const query = (text || "").toLowerCase();
+      const badge = document.getElementById("triageBadgePill");
+      const subInfo = document.getElementById("triageSubInfo");
+      if (!badge || !subInfo) return;
+
+      if (query.includes("chest") || query.includes("heart") || query.includes("breath") || query.includes("stroke") || query.includes("unconscious")) {
+        badge.className = "triage-badge-pill level-3";
+        badge.innerHTML = `<i class="fas fa-triangle-exclamation"></i> <span>Level 3: Urgent / Priority Connect</span>`;
+        subInfo.textContent = "High acuity detected. Priority specialist consult active.";
+      } else if (query.includes("pain") || query.includes("migraine") || query.includes("vomit") || query.includes("severe") || query.includes("child") || query.includes("pediatric")) {
+        badge.className = "triage-badge-pill level-2";
+        badge.innerHTML = `<i class="fas fa-notes-medical"></i> <span>Level 2: Priority OPD</span>`;
+        subInfo.textContent = "Same-day clinical teleconsultation recommended.";
+      } else {
+        badge.className = "triage-badge-pill level-1";
+        badge.innerHTML = `<i class="fas fa-stethoscope"></i> <span>Level 1: Routine OPD</span>`;
+        subInfo.textContent = "Suitable for virtual outpatient consultation.";
+      }
+    };
+
+    // Auto-initialize Schedules carousel on load
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.renderSchedulesCarousel) {
+        window.renderSchedulesCarousel();
+      }
+      if (window.evaluateSymptomTriage) {
+        window.evaluateSymptomTriage("Fever, cough & cold");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+[
+  {
+    "id": "dept-gen-med",
+    "name": "General Medicine",
+    "shortName": "General Physician",
+    "icon": "fa-stethoscope",
+    "themeColor": "teal",
+    "bgClass": "bg-pastel-teal",
+    "activeDoctorsCount": 4,
+    "description": "Internal medicine, fevers, seasonal infections, diabetes, and preventive health checks.",
+    "commonConditions": [
+      "Viral Fever",
+      "Cough & Cold",
+      "Diabetes Mellitus",
+      "Hypertension",
+      "Fatigue",
+      "Infections"
+    ]
+  },
+  {
+    "id": "dept-cardio",
+    "name": "Cardiology",
+    "shortName": "Cardiologist",
+    "icon": "fa-heart-pulse",
+    "themeColor": "rose",
+    "bgClass": "bg-pastel-rose",
+    "activeDoctorsCount": 2,
+    "description": "Heart care, blood pressure management, cholesterol disorders, and cardiovascular health.",
+    "commonConditions": [
+      "Chest Pain",
+      "High BP",
+      "Palpitations",
+      "Shortness of Breath",
+      "Coronary Disease"
+    ]
+  },
+  {
+    "id": "dept-derma",
+    "name": "Dermatology",
+    "shortName": "Dermatologist",
+    "icon": "fa-spa",
+    "themeColor": "purple",
+    "bgClass": "bg-pastel-purple",
+    "activeDoctorsCount": 2,
+    "description": "Skin conditions, hair loss, eczema, psoriasis, acne, and aesthetic dermatology.",
+    "commonConditions": [
+      "Acne & Pimples",
+      "Hair Fall",
+      "Eczema",
+      "Skin Rash",
+      "Fungal Infections",
+      "Psoriasis"
+    ]
+  },
+  {
+    "id": "dept-neuro",
+    "name": "Neurology",
+    "shortName": "Neurologist",
+    "icon": "fa-brain",
+    "themeColor": "pink",
+    "bgClass": "bg-pastel-pink",
+    "activeDoctorsCount": 2,
+    "description": "Brain and nerve disorders, chronic migraines, vertigo, epilepsy, and neuropathy.",
+    "commonConditions": [
+      "Migraine Headache",
+      "Vertigo",
+      "Seizures / Epilepsy",
+      "Nerve Pain",
+      "Numbness"
+    ]
+  },
+  {
+    "id": "dept-pediatrics",
+    "name": "Pediatrics",
+    "shortName": "Pediatrician",
+    "icon": "fa-baby",
+    "themeColor": "mint",
+    "bgClass": "bg-pastel-mint",
+    "activeDoctorsCount": 2,
+    "description": "Compassionate healthcare for newborns, infants, children, and adolescents.",
+    "commonConditions": [
+      "Child Fever",
+      "Vaccination",
+      "Infant Colic",
+      "Childhood Asthma",
+      "Growth Assessment"
+    ]
+  },
+  {
+    "id": "dept-orthopedics",
+    "name": "Orthopedics",
+    "shortName": "Orthopedic",
+    "icon": "fa-bone",
+    "themeColor": "peach",
+    "bgClass": "bg-pastel-peach",
+    "activeDoctorsCount": 2,
+    "description": "Bones, joint replacement, spine care, back pain, sports injuries, and arthritis.",
+    "commonConditions": [
+      "Knee Pain",
+      "Back Pain",
+      "Sciatica",
+      "Osteoarthritis",
+      "Frozen Shoulder",
+      "Fractures"
+    ]
+  },
+  {
+    "id": "dept-gynae",
+    "name": "Obstetrics & Gynecology",
+    "shortName": "Gynecologist",
+    "icon": "fa-female",
+    "themeColor": "rose",
+    "bgClass": "bg-pastel-rose",
+    "activeDoctorsCount": 2,
+    "description": "Women's wellness, prenatal care, high-risk pregnancy, PCOS/PCOD, and menstrual disorders.",
+    "commonConditions": [
+      "PCOS / PCOD",
+      "Pregnancy Care",
+      "Irregular Periods",
+      "Pelvic Pain",
+      "Infertility"
+    ]
+  },
+  {
+    "id": "dept-ent",
+    "name": "ENT",
+    "shortName": "ENT Specialist",
+    "icon": "fa-head-side-cough",
+    "themeColor": "blue",
+    "bgClass": "bg-pastel-teal",
+    "activeDoctorsCount": 1,
+    "description": "Ear, nose, and throat treatments, sinusitis, tonsillitis, hearing disorders, and allergies.",
+    "commonConditions": [
+      "Sinusitis",
+      "Ear Pain",
+      "Tonsillitis",
+      "Hearing Loss",
+      "Tinnitus",
+      "Sore Throat"
+    ]
+  },
+  {
+    "id": "dept-gastro",
+    "name": "Gastroenterology",
+    "shortName": "Gastroenterologist",
+    "icon": "fa-disease",
+    "themeColor": "amber",
+    "bgClass": "bg-pastel-peach",
+    "activeDoctorsCount": 1,
+    "description": "Digestive system, liver disorders, acidity, irritable bowel syndrome (IBS), and ulcers.",
+    "commonConditions": [
+      "Acidity & GERD",
+      "Fatty Liver",
+      "IBS",
+      "Constipation",
+      "Indigestion",
+      "Ulcers"
+    ]
+  },
+  {
+    "id": "dept-psychiatry",
+    "name": "Psychiatry & Mental Health",
+    "shortName": "Psychiatrist",
+    "icon": "fa-lightbulb",
+    "themeColor": "violet",
+    "bgClass": "bg-pastel-purple",
+    "activeDoctorsCount": 1,
+    "description": "Confidential mental health support for anxiety, depression, sleep disorders, and stress.",
+    "commonConditions": [
+      "Anxiety",
+      "Clinical Depression",
+      "Insomnia",
+      "Panic Disorder",
+      "Stress & Burnout"
+    ]
+  },
+  {
+    "id": "dept-pulmo",
+    "name": "Pulmonology",
+    "shortName": "Pulmonologist",
+    "icon": "fa-lungs",
+    "themeColor": "teal",
+    "bgClass": "bg-pastel-teal",
+    "activeDoctorsCount": 1,
+    "description": "Lungs and respiratory care, asthma, COPD, chronic bronchitis, and allergy relief.",
+    "commonConditions": [
+      "Bronchial Asthma",
+      "Chronic Cough",
+      "COPD",
+      "Breathlessness",
+      "Allergic Bronchitis"
+    ]
+  },
+  {
+    "id": "dept-ophthalmology",
+    "name": "Ophthalmology",
+    "shortName": "Ophthalmologist",
+    "icon": "fa-eye",
+    "themeColor": "blue",
+    "bgClass": "bg-pastel-mint",
+    "activeDoctorsCount": 1,
+    "description": "Eye vision, digital eye strain, glaucoma evaluation, cataract, and dry eye syndromes.",
+    "commonConditions": [
+      "Digital Eye Strain",
+      "Dry Eyes",
+      "Refractive Error",
+      "Cataract",
+      "Eye Redness"
+    ]
+  }
+]
