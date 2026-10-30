@@ -41,12 +41,12 @@ import {
  * Firebase Console -> Project Settings -> General -> Your apps -> Web App
  */
 const firebaseConfig = {
-  apiKey: "AIzaSyB_CareConnect360_Prod_ApiKey_2026",
-  authDomain: "careconnect360-virtualcare.firebaseapp.com",
-  projectId: "careconnect360-virtualcare",
-  storageBucket: "careconnect360-virtualcare.appspot.com",
-  messagingSenderId: "982736415201",
-  appId: "1:982736415201:web:a7b8c9d0e1f2a3b4c5d6e7"
+  apiKey: "YOUR_FIREBASE_API_KEY_HERE",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890"
 };
 
 // Check if using placeholder key to prevent Google Identity Toolkit 400 Bad Request error
