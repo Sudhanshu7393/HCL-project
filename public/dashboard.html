@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Health Portal - CareConnect360</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- jsPDF & QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Clean Unified Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=5.0">
+
+  <!-- Floating Toast & Notification Engine -->
+  <script src="toast-notification.js?v=5.0"></script>
+
+  <script>
+    window.closePrescriptionModal = window.closePrescriptionModal || function() {
+      const modal = document.getElementById("prescriptionModal");
+      if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+      }
+    };
+    window.switchDashboardRole = window.switchDashboardRole || function(role) {
+      document.querySelectorAll(".role-tab-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-role") === role);
+      });
+    };
+  </script>
+  <style>
+    /* Modal - strictly hidden by default */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.active {
+      display: flex !important;
+    }
+    .modal-dialog {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-main);
+    }
+    .modal-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafcfd;
+    }
+    .modal-close {
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      background: transparent;
+      border: none;
+    }
+    .modal-close:hover {
+      color: #0f172a;
+    }
+    .modal-action-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #fafcfd;
+    }
+    .letterhead-document {
+      padding: 24px;
+      background: #ffffff;
+      color: #111827;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .letterhead-top-banner {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--teal);
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+    .patient-info-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+    .rx-meds-print-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .rx-meds-print-table th {
+      background: #f1f5f9;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 12px;
+      color: #475569;
+    }
+    .rx-meds-print-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .letterhead-bottom-stamp {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 18px;
+      margin-top: 20px;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+    }
+    .toast-msg {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      margin-top: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 4px solid var(--teal);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Outer Rounded Canvas (Matches Modern Healthcare Layout) -->
+  <div class="page-canvas-wrapper">
+
+    <!-- Top Floating Island Capsule Navigation (Aligned with Homepage) -->
+    <header class="site-header">
+      <div class="navbar">
+        <a href="index.html" class="brand-wrapper">
+          <div class="brand-logo-mark"><img src="logo.svg?v=2" alt="CareConnect360 Logo"></div>
+          <div class="brand-name">CareConnect<span>360</span></div>
+          <div class="nav-status-pill">
+            <span class="pulse-dot"></span> 24/7 Virtual OPD
+          </div>
+        </a>
+
+        <!-- Minimal Center Segmented Capsule Navigation -->
+        <nav>
+          <ul class="nav-segmented-track">
+            <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="index.html#doctorsSection"><i class="fas fa-user-md"></i> Find Specialists</a></li>
+            <li><a href="dashboard.html" class="active"><i class="fas fa-file-medical-alt"></i> <span id="navPortalTitleText">My Health Portal</span></a></li>
+          </ul>
+        </nav>
+
+        <!-- Right Actions: Clean Minimalist Navbar -->
+        <div class="nav-right-actions">
+          <div id="navAuthControls"></div>
+          <a href="index.html#doctorsSection" id="navBookAppointmentBtn" class="btn btn-primary btn-sm">
+            Book Appointment
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dashboard Main Viewport (Constrained & Aligned with Navbar) -->
+    <main class="dashboard-viewport">
+
+      <!-- Top Greeting & Role Switcher Bar -->
+      <div class="portal-topbar">
+        <div class="portal-welcome">
+          <div class="hero-badge-tag" style="margin-bottom: 8px; width: fit-content;">
+            <i class="fas fa-id-card-clip"></i> Connected Health Records &bull; 24/7 Virtual OPD
+          </div>
+          <h1 id="portalUserName">Rahul Sharma</h1>
+          <p id="portalUserSub">Patient Health Portal &bull; Medical Records &amp; Appointment History</p>
+        </div>
+
+        <div class="portal-role-toggle">
+          <button type="button" class="role-tab-btn active" data-role="patient" onclick="window.switchDashboardRole('patient')">
+            <i class="fas fa-user"></i> Patient View
+          </button>
+          <button type="button" class="role-tab-btn" data-role="doctor" onclick="window.switchDashboardRole('doctor')">
+            <i class="fas fa-user-md"></i> Doctor View
+          </button>
+        </div>
+      </div>
+
+      <!-- Patient / Doctor Clinical Telemetry Metrics Strip -->
+      <div class="portal-metrics-strip" id="portalMetricsStrip">
+        <div class="portal-metric-card">
+          <div class="metric-icon-box primary" id="metricIcon1">
+            <i class="fas fa-id-card"></i>
+          </div>
+          <div class="metric-info-col">
+            <span id="metricLabel1">Health ID / UHID</span>
+            <strong id="metricValue1">UHID-CC-84291</strong>
+            <small id="metricSub1">ABHA / NDHM Verified</small>
+          </div>
+        </div>
+
+        <div class="portal-metric-card">
+          <div class="metric-icon-box amber" id="metricIcon2">
+            <i class="fas fa-video"></i>
+          </div>
+          <div class="metric-info-col">
+            <span id="metricLabel2">Upcoming Consults</span>
+            <strong id="metricValue2">1 Active</strong>
+            <small id="metricSub2">Live WebRTC Room</small>
+          </div>
+        </div>
+
+        <div class="portal-metric-card">
+          <div class="metric-icon-box emerald" id="metricIcon3">
+            <i class="fas fa-file-prescription"></i>
+          </div>
+          <div class="metric-info-col">
+            <span id="metricLabel3">e-Prescriptions</span>
+            <strong id="metricValue3">1 Stored</strong>
+            <small id="metricSub3">QR Verifiable (PDF)</small>
+          </div>
+        </div>
+
+        <div class="portal-metric-card">
+          <div class="metric-icon-box" id="metricIcon4">
+            <i class="fas fa-heart-pulse"></i>
+          </div>
+          <div class="metric-info-col">
+            <span id="metricLabel4">Clinical Vitals</span>
+            <strong id="metricValue4">O+ &bull; 122/80</strong>
+            <small id="metricSub4">NKDA &bull; Stable</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Consultations Card Panel -->
+      <section class="dashboard-panel-card">
+        <div class="panel-header-row">
+          <h3>
+            <i class="fas fa-video" style="color: var(--primary);"></i> Upcoming Video Consultations
+          </h3>
+          <a href="index.html#doctorsSection" id="btnUpcomingHeaderAction" class="btn btn-outline btn-sm">
+            <i class="fas fa-plus" style="color: var(--teal);"></i> Book New Consultation
+          </a>
+        </div>
+        <div class="panel-body-area">
+          <div id="upcomingAppointmentsList">
+            <div class="appointment-entry-row">
+              <div style="display: flex; gap: 14px; align-items: center;">
+                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop&q=80" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <strong style="font-size: 15px; color: #0284c7;">Dr. Ramesh Chandra Gupta</strong>
+                    <span class="triage-badge-pill level-1" style="font-size: 11px; padding: 2px 8px;"><i class="fas fa-check-circle"></i> Routine OPD</span>
+                  </div>
+                  <div style="font-size: 13px; color: var(--text-secondary);">General Physician &bull; Fortis Escorts Hospital, New Delhi</div>
+                  <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
+                    <i class="far fa-calendar-alt" style="color: var(--teal);"></i> Today, 4:30 PM &bull; <span style="color: #059669; font-weight: 600;"><i class="fas fa-check-circle"></i> Confirmed</span> &bull; ABHA: <strong style="color: #0284c7;">91-4829-1082-3640</strong>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <a href="consultation.html?apptId=APT-1082" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="fas fa-video"></i> Join Consultation Room
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Consultation History & E-Prescriptions -->
+      <section class="dashboard-panel-card">
+        <div class="panel-header-row">
+          <h3>
+            <i class="fas fa-file-prescription" style="color: var(--teal);"></i> Consultation History &amp; E-Prescriptions
+          </h3>
+        </div>
+        <div class="panel-body-area">
+          <div id="prescriptionHistoryList">
+            <div class="appointment-entry-row">
+              <div>
+                <span style="font-size: 11px; font-weight: 700; color: var(--teal); text-transform: uppercase;">RX-2026-9214</span>
+                <strong style="display: block; font-size: 14.5px; margin-top: 2px;">Acute Upper Respiratory Tract Infection (URTI) with Pharyngitis</strong>
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
+                  Prescribed by <strong>Dr. Ramesh Chandra Gupta</strong> &bull; Date: 25 Sep 2026
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="window.openPrescriptionLetterhead('RX-2026-9214')">
+                  <i class="fas fa-eye" style="color: var(--teal);"></i> View Letterhead
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="window.downloadPrescriptionPDF('RX-2026-9214')">
+                  <i class="fas fa-file-pdf" style="color: #ef4444;"></i> Download PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Diagnostic Lab Reports & Medical Records (EHR) -->
+      <section class="dashboard-panel-card" id="ehrReportsPanel">
+        <div class="panel-header-row">
+          <h3>
+            <i class="fas fa-file-medical" style="color: #059669;"></i> Connected Health Records &amp; Diagnostic Reports
+          </h3>
+          <button type="button" class="btn btn-outline btn-sm" onclick="window.openUploadReportModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-cloud-upload-alt" style="color: var(--teal);"></i> Upload Report (PDF/Image)
+          </button>
+        </div>
+        <div class="panel-body-area">
+          <div id="patientRecordsList">
+            <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+              <i class="fas fa-spinner fa-spin" style="font-size: 20px; color: var(--teal);"></i> Loading connected medical records...
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Professional Footer (Aligned with Homepage) -->
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div>CareConnect360 VirtualCare Platform &bull; Delhi NCR</div>
+        <div>24/7 Verified Hospital Specialist Network</div>
+      </div>
+    </footer>
+
+    <!-- Native Mobile Floating Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav">
+      <a href="index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="index.html#doctorsSection" class="mobile-nav-item">
+        <i class="fas fa-user-md"></i>
+        <span>Doctors</span>
+      </a>
+      <a href="index.html#doctorsSection" class="mobile-nav-cta">
+        <i class="fas fa-video"></i>
+        <span>Consult</span>
+      </a>
+      <a href="dashboard.html" class="mobile-nav-item active">
+        <i class="fas fa-file-medical-alt"></i>
+        <span>Portal</span>
+      </a>
+      <a href="login.html" class="mobile-nav-item">
+        <i class="fas fa-user-circle"></i>
+        <span>Account</span>
+      </a>
+    </nav>
+
+  </div> <!-- End .page-canvas-wrapper -->
+
+  <!-- Prescription Preview Modal (strictly hidden by default) -->
+  <div class="modal-backdrop" id="prescriptionModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-head">
+        <h3 style="font-size: 16px; font-weight: 800; color: #0f172a;">Medical e-Prescription</h3>
+        <button type="button" class="modal-close" onclick="window.closePrescriptionModal()">&times;</button>
+      </div>
+
+      <div class="modal-content-area" style="padding: 0; overflow-y: auto;">
+        <div class="letterhead-document" id="printable-rx">
+          <div class="letterhead-top-banner">
+            <div>
+              <h3 style="font-size: 18px; color: #0284c7; font-weight: 700;">CareConnect Telemedicine Outpatient Clinic</h3>
+              <p id="rxClinicDisplay" style="font-size: 12px; color: var(--text-muted);">Fortis Escorts Hospital & Healthcare Clinic, New Delhi</p>
+              <p style="font-size: 12px; color: var(--text-muted);">Registration Authority: Medical Council of India (MCI)</p>
+            </div>
+            <div style="text-align: right;">
+              <strong id="rxDocNameDisplay" style="font-size: 14px;">Dr. Ramesh Chandra Gupta</strong>
+              <p id="rxDocSpecDisplay" style="font-size: 12px; color: var(--text-muted);">Senior Consultant - Internal Medicine</p>
+              <p style="font-size: 12px; color: var(--text-muted);">Reg No: <span id="rxDocLicenseDisplay">MCI-42918</span></p>
+            </div>
+          </div>
+
+          <div class="patient-info-strip" style="grid-template-columns: repeat(4, 1fr);">
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Patient Name</span>
+              <strong id="rxPatientNameDisplay" style="display: block;">Rahul Sharma</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">ABHA Health ID</span>
+              <strong id="rxPatientAbhaDisplay" style="display: block; color: #0284c7;">91-4829-1082-3640</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Clinical Triage</span>
+              <strong id="rxTriageDisplay" style="display: block; color: #059669;">Level 1: Routine OPD</strong>
+            </div>
+            <div>
+              <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Prescription ID</span>
+              <strong id="rxIdDisplay" style="color: var(--teal); display: block;">RX-2026-9214</strong>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Diagnosis:</span>
+            <div id="rxDiagnosisDisplay" style="font-size: 14px; font-weight: 600; color: #111827; margin-top: 2px;">
+              Acute Upper Respiratory Tract Infection (URTI) with Pharyngitis
+            </div>
+          </div>
+
+          <div style="font-size: 15px; font-weight: 700; color: #0284c7; margin-bottom: 6px;">Rx (Medications)</div>
+
+          <table class="rx-meds-print-table">
+            <thead>
+              <tr>
+                <th>Medicine &amp; Strength</th>
+                <th>Dosage Frequency</th>
+                <th>Instructions</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="rxMedsTableBody">
+              <tr>
+                <td><strong>1.</strong> Tab. Augmentin 625 DUO</td>
+                <td><strong>1 tablet twice daily</strong></td>
+                <td>After Meals</td>
+                <td>5 Days</td>
+              </tr>
+              <tr>
+                <td><strong>2.</strong> Tab. Dolo 650 (Paracetamol)</td>
+                <td><strong>1 tablet SOS (max 3 times/day)</strong></td>
+                <td>After Food (for fever/body ache)</td>
+                <td>3 Days</td>
+              </tr>
+              <tr>
+                <td><strong>3.</strong> Tab. Pantocid 40mg</td>
+                <td><strong>1 tablet once daily</strong></td>
+                <td>Before Breakfast</td>
+                <td>5 Days</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="background: #f0fdfa; border-left: 3px solid var(--teal); padding: 10px 14px; margin-bottom: 16px; border-radius: 4px;">
+            <strong style="font-size: 12px; color: #0f766e; display: block; margin-bottom: 2px;">Advice &amp; Follow-up:</strong>
+            <p id="rxAdviceDisplay" style="font-size: 13px; color: var(--text-main); margin: 0;">Drink plenty of warm fluids. Salt water gargles. Steam inhalation twice daily. Strict rest.</p>
+          </div>
+
+          <div class="letterhead-bottom-stamp">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <canvas id="rxQrCanvas" width="64" height="64" style="border: 1px solid var(--border); padding: 2px; background: #fff; border-radius: 4px;"></canvas>
+              <div>
+                <strong style="font-size: 12px; display: block;">Pharmacy QR Verification</strong>
+                <small style="color: var(--text-muted); font-size: 11px;">Digitally signed &amp; verifiable e-prescription</small>
+              </div>
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-family: serif; font-size: 17px; color: #0284c7; border-bottom: 1px solid #111827; padding-bottom: 2px;" id="rxSignatureDoctor">
+                Dr. Ramesh Chandra Gupta
+              </div>
+              <small style="color: var(--text-muted); font-size: 11px;">Authorized Medical Practitioner (MCI-42918)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-action-footer">
+        <button type="button" class="btn btn-outline btn-sm" onclick="window.print()">
+          <i class="fas fa-print"></i> Print
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.downloadPrescriptionPDF(document.getElementById('rxIdDisplay').textContent)">
+          <i class="fas fa-download"></i> Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Medical Report Modal -->
+  <div class="modal-backdrop" id="uploadReportModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 480px;">
+      <div class="modal-head">
+        <h3 style="font-size: 16px; font-weight: 800; color: #0f172a;">
+          <i class="fas fa-cloud-upload-alt" style="color: var(--teal);"></i> Upload Diagnostic Report
+        </h3>
+        <button type="button" class="modal-close" onclick="window.closeUploadReportModal()">&times;</button>
+      </div>
+      <div class="modal-content-area" style="padding: 20px;">
+        <form id="uploadReportForm" onsubmit="window.submitMedicalReportUpload(event)">
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Report Title</label>
+            <input type="text" id="reportTitleInput" placeholder="e.g. Complete Blood Count (CBC) or Chest X-Ray" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13.5px;">
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Record Category</label>
+            <select id="reportCategorySelect" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13.5px; background: #ffffff;">
+              <option value="Lab Report">Pathology Lab Report</option>
+              <option value="Imaging">Radiology / Imaging (X-Ray, MRI, CT)</option>
+              <option value="Prescription">Prior Doctor Prescription</option>
+              <option value="Discharge Summary">Hospital Discharge Summary</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Report Date</label>
+            <input type="date" id="reportDateInput" required style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13.5px;">
+          </div>
+          <div style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Select File (PDF or Image)</label>
+            <input type="file" id="reportFileInput" accept=".pdf,image/*" style="width: 100%; padding: 8px 12px; border: 1px dashed var(--border); border-radius: var(--radius-md); font-size: 13px; background: #f8fafc;">
+            <small style="display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px;">Supports PDF, JPG, PNG up to 15MB. Encrypted and accessible to consulting doctors.</small>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Clinical Notes / Observations (Optional)</label>
+            <textarea id="reportNotesInput" placeholder="Add any specific symptoms or doctor's prior remarks..." style="width: 100%; height: 60px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; resize: vertical;"></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="window.closeUploadReportModal()">Cancel</button>
+            <button type="submit" id="btnSubmitReportUpload" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fas fa-upload"></i> Upload &amp; Link to EHR
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="toast-container"></div>
+
+  <!-- End-to-End Real-Time Firestore Synchronization ES Module -->
+  <script type="module">
+    import { initAuthObserver, loginUser, registerUser } from "./auth.js?v=4.1";
+    import { 
+      initDashboardSync, 
+      switchDashboardRole, 
+      openPrescriptionLetterhead, 
+      closePrescriptionModal, 
+      downloadPrescriptionPDF 
+    } from "./dashboard.js?v=4.1";
+
+    // Bind dashboard actions immediately to window
+    window.switchDashboardRole = switchDashboardRole;
+    window.openPrescriptionLetterhead = openPrescriptionLetterhead;
+    window.closePrescriptionModal = closePrescriptionModal;
+    window.downloadPrescriptionPDF = downloadPrescriptionPDF;
+
+    // Auth Portal Navigation
+    window.openAuthModal = function(role) {
+      window.location.href = role ? `login.html?role=${role}` : "login.html";
+    };
+
+    window.showToast = function(message, type = "info") {
+      const container = document.querySelector(".toast-container");
+      if (!container) return;
+      const toast = document.createElement("div");
+      toast.className = "toast-msg";
+      const icon = type === "success" ? "fa-check-circle" : "fa-info-circle";
+      toast.innerHTML = `<i class="fas ${icon}" style="color: var(--teal);"></i> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Initialize Auth State Observer and Protected Route Guard
+      initAuthObserver();
+
+      // 2. Initialize Firestore Real-Time Synchronizer
+      initDashboardSync();
+    });
+  </script>
+</body>
+</html>

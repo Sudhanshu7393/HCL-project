@@ -765,6 +765,7 @@ app.get('/docs', (req, res) => {
 // ==========================================================================
 // Static File Serving
 // ==========================================================================
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(process.cwd()));

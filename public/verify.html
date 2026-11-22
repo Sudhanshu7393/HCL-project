@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prescription Verification Portal - CareConnect360</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Clean Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=5.0">
+
+  <!-- Floating Toast & Notification Engine -->
+  <script src="toast-notification.js?v=5.0"></script>
+  <style>
+    .verify-canvas-wrapper {
+      max-width: 760px;
+      margin: 40px auto;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 50px rgba(2, 132, 199, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+      overflow: hidden;
+    }
+    .verify-header-strip {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--teal);
+    }
+    .verify-status-banner {
+      background: #ecfdf5;
+      border-bottom: 1px solid #a7f3d0;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .verify-status-icon {
+      width: 44px;
+      height: 44px;
+      background: #059669;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .verify-content-body {
+      padding: 32px;
+    }
+    .verify-doctor-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .verify-patient-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px 16px;
+      background: #fafcfd;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+    .verify-rx-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .verify-rx-table th {
+      background: #f1f5f9;
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .verify-rx-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+    }
+    .statutory-guideline-box {
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-size: 12.5px;
+      color: #0f766e;
+      line-height: 1.5;
+      margin-top: 24px;
+    }
+    .verify-footer-actions {
+      padding: 18px 32px;
+      background: #fafcfd;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    @media (max-width: 680px) {
+      .verify-canvas-wrapper {
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border: none !important;
+      }
+      .verify-header-strip {
+        padding: 18px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .verify-status-banner {
+        padding: 14px 16px;
+      }
+      .verify-content-body {
+        padding: 16px 14px;
+      }
+      .verify-patient-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .verify-footer-actions {
+        padding: 14px 16px;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .verify-footer-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    @media (max-width: 420px) {
+      .verify-patient-grid {
+        grid-template-columns: 1fr;
+      }
+      .verify-rx-table th, .verify-rx-table td {
+        padding: 8px 6px;
+        font-size: 11.5px;
+      }
+    }
+  </style>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+
+  <div class="verify-canvas-wrapper">
+    
+    <!-- Top Header -->
+    <div class="verify-header-strip">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="logo.svg?v=2" alt="CareConnect360" style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain;">
+        <div>
+          <div style="font-size: 17px; font-weight: 800; letter-spacing: -0.3px;">CareConnect<span style="color: #38bdf8;">360</span></div>
+          <div style="font-size: 11.5px; color: #94a3b8;">Ayushman Bharat Digital Mission (ABDM) &bull; Prescription Verification</div>
+        </div>
+      </div>
+      <div>
+        <a href="index.html" class="btn btn-outline btn-sm" style="color: #fff; border-color: #475569; background: #1e293b;">
+          <i class="fas fa-home"></i> Platform Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Green Cryptographic Status Banner -->
+    <div class="verify-status-banner">
+      <div class="verify-status-icon">
+        <i class="fas fa-check"></i>
+      </div>
+      <div>
+        <strong style="color: #065f46; font-size: 15px; display: block;">Digitally Verified &amp; Medically Valid</strong>
+        <div style="color: #047857; font-size: 12.5px; margin-top: 1px;">
+          Signed by Authorized Medical Practitioner in compliance with NMC Telemedicine Guidelines &amp; ABHA Standards
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification Body -->
+    <div class="verify-content-body">
+      
+      <!-- Doctor Credentials Card -->
+      <div class="verify-doctor-card">
+        <img id="vDocPhoto" src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop&q=80" alt="Doctor" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        <div>
+          <strong id="vDocName" style="font-size: 16px; color: #0284c7; display: block;">Dr. Ramesh Chandra Gupta</strong>
+          <div id="vDocSpec" style="font-size: 13px; color: var(--text-secondary); margin-top: 1px;">Senior Consultant &bull; General Medicine</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+            <i class="fas fa-id-badge" style="color: var(--teal);"></i> Registration No: <strong id="vDocLicense" style="color: #0f172a;">MCI-42918</strong> &bull; <span id="vDocClinic">Fortis Escorts Hospital, New Delhi</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient & Consultation Info (Incorporating ABDM ABHA ID & Triage Acuity) -->
+      <div class="verify-patient-grid">
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Patient Name</span>
+          <strong id="vPatientName" style="display: block; font-size: 13.5px; color: #0f172a; margin-top: 2px;">Rahul Sharma</strong>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">ABHA Health ID</span>
+          <strong id="vPatientAbha" style="display: block; font-size: 13.5px; color: #0284c7; margin-top: 2px;">91-4829-1082-3640</strong>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Clinical Triage</span>
+          <strong id="vTriageLevel" style="display: block; font-size: 13.5px; color: #059669; margin-top: 2px;">Level 1: Routine OPD</strong>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Age / Sex</span>
+          <strong id="vPatientMeta" style="display: block; font-size: 13.5px; color: #0f172a; margin-top: 2px;">32 Yrs / Male</strong>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Date Issued</span>
+          <strong id="vDate" style="display: block; font-size: 13.5px; color: #0f172a; margin-top: 2px;">Today</strong>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Prescription ID</span>
+          <strong id="vRxId" style="display: block; font-size: 13.5px; color: var(--teal); margin-top: 2px;">RX-CC-9214</strong>
+        </div>
+      </div>
+
+      <!-- Clinical Diagnosis -->
+      <div style="margin-bottom: 20px;">
+        <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">
+          Provisional Diagnosis
+        </span>
+        <div id="vDiagnosis" style="font-size: 14.5px; font-weight: 700; color: #0f172a; background: #f8fafc; border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm);">
+          Acute Upper Respiratory Tract Infection (URTI) with Pharyngitis
+        </div>
+      </div>
+
+      <!-- Prescribed Medications -->
+      <div style="font-size: 14.5px; font-weight: 700; color: #0284c7; margin-bottom: 8px;">
+        <i class="fas fa-pills"></i> Prescribed Pharmacotherapy (Rx)
+      </div>
+
+      <table class="verify-rx-table">
+        <thead>
+          <tr>
+            <th>Medicine Name</th>
+            <th>Dosage</th>
+            <th>Instructions</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody id="vMedsTableBody">
+          <tr>
+            <td><strong>1.</strong> Tab. Augmentin 625 DUO</td>
+            <td><strong>1 tablet twice daily</strong></td>
+            <td>After Meals</td>
+            <td>5 Days</td>
+          </tr>
+          <tr>
+            <td><strong>2.</strong> Tab. Dolo 650 (Paracetamol)</td>
+            <td><strong>1 tablet SOS (max 3/day)</strong></td>
+            <td>After Meals (fever/body ache)</td>
+            <td>3 Days</td>
+          </tr>
+          <tr>
+            <td><strong>3.</strong> Tab. Pantocid 40mg</td>
+            <td><strong>1 tablet once daily</strong></td>
+            <td>Before Breakfast</td>
+            <td>5 Days</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Advice -->
+      <div style="background: #f8fafc; border-left: 3px solid var(--teal); padding: 12px 14px; border-radius: 4px; font-size: 13px;">
+        <strong style="color: #0f766e; display: block; margin-bottom: 2px;">Doctor Advice:</strong>
+        <p id="vAdvice" style="margin: 0; color: var(--text-main);">Drink plenty of warm fluids. Salt water gargles. Steam inhalation twice daily. Strict rest.</p>
+      </div>
+
+      <!-- Statutory Guideline Box -->
+      <div class="statutory-guideline-box">
+        <i class="fas fa-shield-alt" style="margin-right: 6px;"></i>
+        <strong>Statutory Notice:</strong> This digital e-prescription is generated under the statutory framework of Section 5.3 of the Telemedicine Practice Guidelines issued by the Ministry of Health and Family Welfare (MoHFW) &amp; Board of Governors in supersession of the Medical Council of India (MCI). Recognized by registered Indian retail and e-pharmacies.
+      </div>
+
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="verify-footer-actions">
+      <div style="font-size: 12px; color: var(--text-muted);">
+        Verification Token: <code id="vToken" style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #334155;">CC-TOKEN-VERIFIED</code>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+          <i class="fas fa-print"></i> Print Copy
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="downloadPrescriptionPdfFromVerify()">
+          <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const apptId = urlParams.get("id") || "APT-1082";
+
+      // 1. Try reading from local storage mirror if available
+      try {
+        const raw = localStorage.getItem("careconnect_appointments");
+        if (raw) {
+          const list = JSON.parse(raw);
+          const found = list.find(a => a.id === apptId);
+          if (found) {
+            if (found.doctorName) document.getElementById("vDocName").textContent = found.doctorName;
+            if (found.doctorSpecialty) document.getElementById("vDocSpec").textContent = found.doctorSpecialty;
+            if (found.doctorLicense) document.getElementById("vDocLicense").textContent = found.doctorLicense;
+            if (found.doctorClinic) document.getElementById("vDocClinic").textContent = found.doctorClinic;
+            if (found.doctorAvatar) document.getElementById("vDocPhoto").src = found.doctorAvatar;
+            if (found.patientName) document.getElementById("vPatientName").textContent = found.patientName;
+            if (found.patientAbha) document.getElementById("vPatientAbha").textContent = found.patientAbha;
+            if (found.triageLevel) document.getElementById("vTriageLevel").textContent = found.triageLevel;
+            if (found.appointmentDate) document.getElementById("vDate").textContent = found.appointmentDate;
+            if (found.diagnosis) document.getElementById("vDiagnosis").textContent = found.diagnosis;
+            if (found.advice) document.getElementById("vAdvice").textContent = found.advice;
+            if (found.cryptoSeal) document.getElementById("vToken").textContent = found.cryptoSeal;
+          }
+        }
+      } catch (e) {}
+
+      document.getElementById("vRxId").textContent = "RX-" + apptId.slice(-6).toUpperCase();
+      if (!document.getElementById("vToken").textContent.includes("SHA256")) {
+        document.getElementById("vToken").textContent = "SHA256-" + apptId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      }
+    });
+
+    function downloadPrescriptionPdfFromVerify() {
+      if (window.jspdf && window.jspdf.jsPDF) {
+        const doc = new window.jspdf.jsPDF();
+        doc.setFillColor(240, 249, 255);
+        doc.rect(0, 0, 210, 36, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.setTextColor(2, 132, 199);
+        doc.text("CareConnect360 VirtualCare Outpatient Clinic", 14, 16);
+
+        doc.setFontSize(9.5);
+        doc.setTextColor(100, 116, 139);
+        doc.setFont("helvetica", "normal");
+        doc.text("Statutory Authority: Medical Council of India / NMC Telemedicine Guidelines", 14, 24);
+        doc.line(14, 34, 196, 34);
+
+        const docName = document.getElementById("vDocName")?.textContent || "Dr. Ramesh Chandra Gupta";
+        const patientName = document.getElementById("vPatientName")?.textContent || "Rahul Sharma";
+        const abhaId = document.getElementById("vPatientAbha")?.textContent || "91-4829-1082-3640";
+        const triage = document.getElementById("vTriageLevel")?.textContent || "Level 1: Routine OPD";
+        const diagnosis = document.getElementById("vDiagnosis")?.textContent || "URTI with Pharyngitis";
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Doctor: ${docName}`, 14, 43);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Triage: ${triage}`, 14, 48);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Patient: ${patientName}`, 125, 43);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`ABHA ID: ${abhaId}`, 125, 48);
+
+        doc.line(14, 52, 196, 52);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Diagnosis: ${diagnosis}`, 14, 60);
+
+        doc.setFontSize(11);
+        doc.setTextColor(13, 148, 136);
+        doc.text("Rx (Prescribed Medications):", 14, 70);
+
+        doc.setFontSize(9.5);
+        doc.setTextColor(30, 41, 59);
+        doc.setFont("helvetica", "normal");
+        let y = 78;
+        const rows = document.querySelectorAll("#vMedsTableBody tr");
+        rows.forEach((r) => {
+          const tds = r.querySelectorAll("td");
+          if (tds.length >= 4) {
+            doc.text(`${tds[0].textContent} - ${tds[1].textContent} (${tds[2].textContent}) for ${tds[3].textContent}`, 14, y);
+            y += 8;
+          }
+        });
+
+        y += 10;
+        doc.line(14, y, 196, y);
+        doc.setFontSize(8.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Verified by National Telemedicine Regulatory Portal (CareConnect360)", 14, y + 6);
+        doc.text(`Doctor Signature: ${docName}`, 130, y + 6);
+
+        doc.save(`Verified_Prescription.pdf`);
+      } else {
+        window.print();
+      }
+    }
+  </script>
+</body>
+</html>

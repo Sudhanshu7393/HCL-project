@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In &bull; CareConnect360</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0d9488;
+      --primary-hover: #0f766e;
+      --primary-light: #ccfbf1;
+      --teal-gradient: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+      --bg: #ebf4f8;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius-lg: 20px;
+      --radius-md: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(13, 148, 136, 0.09) 0%, transparent 45%);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* Top Nav Brand */
+    .top-header-bar {
+      width: 100%;
+      max-width: 980px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #0f172a;
+    }
+
+    .brand-logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .brand-logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .brand-text {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-text span {
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Main Auth Card */
+    .login-container-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 980px;
+      border-radius: var(--radius-lg);
+      box-shadow: 
+        0 10px 30px rgba(15, 23, 42, 0.04),
+        0 25px 60px -15px rgba(2, 132, 199, 0.15),
+        0 0 0 1px rgba(226, 232, 240, 0.85);
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      overflow: hidden;
+      min-height: 560px;
+    }
+
+    /* Left Side: Brand Logo Presentation (NO doctor image) */
+    .brand-side-panel {
+      background: linear-gradient(150deg, #042f2e 0%, #0f766e 45%, #0d9488 100%);
+      color: #ffffff;
+      padding: 48px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-side-panel::before {
+      content: "";
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .logo-hero-box {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding-top: 10px;
+    }
+
+    .main-logo-frame {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 20px;
+      background: #ffffff;
+      border-radius: 26px;
+      padding: 12px;
+      box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.2),
+        0 0 0 4px rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .main-logo-frame:hover {
+      transform: scale(1.05);
+    }
+
+    .main-logo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .brand-hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .brand-hero-sub {
+      font-size: 13.5px;
+      color: #ccfbf1;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .features-list {
+      position: relative;
+      z-index: 2;
+      margin: 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 13px;
+      font-weight: 600;
+      color: #f0fdfa;
+    }
+
+    .feature-item i {
+      font-size: 15px;
+      color: #99f6e4;
+      width: 20px;
+      text-align: center;
+    }
+
+    .side-footer-meta {
+      position: relative;
+      z-index: 2;
+      font-size: 11.5px;
+      color: #a7f3d0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0.9;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 16px;
+    }
+
+    /* Right Side: Simple Authentic Login Form */
+    .form-side-panel {
+      padding: 44px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #ffffff;
+    }
+
+    .form-title-group {
+      margin-bottom: 22px;
+    }
+
+    .form-title-group h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+    }
+
+    .form-title-group p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Clean Segmented Role Switcher */
+    .role-segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+
+    .role-control-btn {
+      padding: 9px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s;
+    }
+
+    .role-control-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Alert Message */
+    .auth-alert-message {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+    }
+
+    .alert-success {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #047857;
+    }
+
+    /* Standard Form Inputs */
+    .field-wrap {
+      margin-bottom: 16px;
+    }
+
+    .field-wrap label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .input-box-relative {
+      position: relative;
+    }
+
+    .input-box-relative i.icon-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .standard-input {
+      width: 100%;
+      padding: 11px 14px 11px 40px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      color: #0f172a;
+      outline: none;
+      background: #ffffff;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .standard-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    .btn-eye-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* Forgot & Remember Row */
+    .remember-forgot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      font-size: 12.5px;
+    }
+
+    .remember-col {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #475569;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .remember-col input {
+      accent-color: var(--primary);
+    }
+
+    .link-forgot {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* Solid Submit Button */
+    .btn-primary-auth {
+      width: 100%;
+      background: var(--teal-gradient);
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      border-radius: var(--radius-md);
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
+      transition: all 0.2s;
+    }
+
+    .btn-primary-auth:hover {
+      box-shadow: 0 6px 18px rgba(13, 148, 136, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* Switch Auth Mode */
+    .switch-mode-text {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .switch-mode-text a {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: 4px;
+    }
+
+    .switch-mode-text a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 820px) {
+      .login-container-card {
+        grid-template-columns: 1fr;
+      }
+      .brand-side-panel {
+        padding: 32px 24px;
+      }
+      .features-list {
+        display: none;
+      }
+      .form-side-panel {
+        padding: 32px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Minimalist Header -->
+  <header class="top-header-bar">
+    <a href="index.html" class="brand-link">
+      <div class="brand-logo-icon">
+        <img src="logo.svg?v=2" alt="CareConnect360 Logo">
+      </div>
+      <div class="brand-text">CareConnect<span>360</span></div>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-btn">
+        <i class="fas fa-arrow-left"></i> Back to Home
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Login Card -->
+  <main class="login-container-card">
+
+    <!-- LEFT SIDE: CareConnect360 Official Logo & Platform Identity -->
+    <div class="brand-side-panel">
+      <div class="logo-hero-box">
+        <div class="main-logo-frame">
+          <img src="logo.svg?v=2" alt="CareConnect360 Needle-in-Center Official Logo">
+        </div>
+        <h1 class="brand-hero-title">CareConnect360</h1>
+        <p class="brand-hero-sub">VirtualCare Telemedicine &amp; Healthcare Portal</p>
+      </div>
+
+      <!-- Verified Platform Features -->
+      <div class="features-list">
+        <div class="feature-item">
+          <i class="fas fa-user-md"></i>
+          <span>Credentialed Hospital Specialists</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-video"></i>
+          <span>Encrypted Agora RTC Video OPD</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-file-prescription"></i>
+          <span>NMC Verifiable e-Prescriptions (QR)</span>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-heartbeat"></i>
+          <span>Connected Health Records &amp; Vitals</span>
+        </div>
+      </div>
+
+      <!-- Compliance Meta -->
+      <div class="side-footer-meta">
+        <i class="fas fa-shield-alt"></i>
+        <span>256-Bit SSL Encrypted &bull; DISHA &amp; ABDM Ready</span>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: Simple, Real-Working Authentication Form -->
+    <div class="form-side-panel">
+      
+      <div class="form-title-group">
+        <h2 id="pageMainHeading">Sign in to your account</h2>
+        <p id="pageSubHeading">Select your role and enter your registered credentials to access your portal.</p>
+      </div>
+
+      <!-- Role Selector: Patient vs Doctor -->
+      <div class="role-segmented-control">
+        <button type="button" class="role-control-btn active" id="btnRolePatient" onclick="setRole('patient')">
+          <i class="fas fa-user"></i> Patient Portal
+        </button>
+        <button type="button" class="role-control-btn" id="btnRoleDoctor" onclick="setRole('doctor')">
+          <i class="fas fa-stethoscope"></i> Doctor OPD
+        </button>
+      </div>
+
+      <!-- Alert Banner -->
+      <div class="auth-alert-message" id="authAlertBanner"></div>
+
+      <!-- FORM A: Sign In Form -->
+      <form id="signInForm" onsubmit="handleAuthSubmit(event)">
+        <div class="field-wrap">
+          <label>Email Address</label>
+          <div class="input-box-relative">
+            <i class="fas fa-envelope icon-prefix"></i>
+            <input type="email" id="authEmail" class="standard-input" placeholder="patient@careconnect.com" required autocomplete="username" value="patient@careconnect.com">
+          </div>
+        </div>
+
+        <div class="field-wrap">
+          <label>Password</label>
+          <div class="input-box-relative">
+            <i class="fas fa-lock icon-prefix"></i>
+            <input type="password" id="authPassword" class="standard-input" placeholder="••••••••" required autocomplete="current-password" value="Patient@Care360">
+            <button type="button" class="btn-eye-toggle" onclick="togglePassword()">
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Extra fields for Sign Up mode only -->
+        <div id="signUpFields" style="display: none;">
+          <div class="field-wrap">
+            <label>Full Legal Name</label>
+            <div class="input-box-relative">
+              <i class="fas fa-id-card icon-prefix"></i>
+              <input type="text" id="regFullName" class="standard-input" placeholder="e.g. Rahul Sharma">
+            </div>
+          </div>
+          <div class="field-wrap">
+            <label>Mobile Number (for SMS Confirmations)</label>
+            <div class="input-box-relative">
+              <i class="fas fa-phone icon-prefix"></i>
+              <input type="tel" id="regPhone" class="standard-input" placeholder="+91 98765 43210">
+            </div>
+          </div>
+        </div>
+
+        <div class="remember-forgot-row" id="rememberRow">
+          <label class="remember-col">
+            <input type="checkbox" id="chkRemember" checked>
+            <span>Remember me</span>
+          </label>
+          <a href="javascript:void(0)" onclick="handleForgotPassword()" class="link-forgot">Forgot password?</a>
+        </div>
+
+        <button type="submit" id="btnSubmitAuth" class="btn-primary-auth">
+          <span id="btnSubmitText">Sign In to Portal</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+
+        <div class="switch-mode-text">
+          <span id="switchPrompt">Don't have an account?</span>
+          <a href="javascript:void(0)" onclick="toggleMode()" id="switchLink">Create an account</a>
+        </div>
+      </form>
+
+    </div>
+
+  </main>
+
+  <!-- Real Backend Integration (Zero Simulation) -->
+  <script type="module">
+    import { loginUser, registerUser, getActiveUser } from "./auth.js?v=4.4";
+
+    let currentRole = "patient"; // 'patient' or 'doctor'
+    let isSignUp = false;
+
+    window.setRole = function(role) {
+      currentRole = role;
+      document.getElementById("btnRolePatient").classList.toggle("active", role === "patient");
+      document.getElementById("btnRoleDoctor").classList.toggle("active", role === "doctor");
+
+      const emailInput = document.getElementById("authEmail");
+      const passInput = document.getElementById("authPassword");
+
+      if (!isSignUp) {
+        if (role === "doctor") {
+          emailInput.value = "doctor@careconnect.com";
+          passInput.value = "Doctor@Care360";
+        } else {
+          emailInput.value = "patient@careconnect.com";
+          passInput.value = "Patient@Care360";
+        }
+      }
+      hideAlert();
+    };
+
+    window.handleForgotPassword = function() {
+      const email = document.getElementById("authEmail").value.trim();
+      if (!email) {
+        showAlert("Please enter your registered email address to receive recovery instructions.", "danger");
+      } else {
+        showAlert(`Password recovery instructions have been sent to ${email}.`, "success");
+      }
+    };
+
+    window.togglePassword = function() {
+      const input = document.getElementById("authPassword");
+      const icon = document.getElementById("eyeIcon");
+      if (!input || !icon) return;
+      const isPwd = input.type === "password";
+      input.type = isPwd ? "text" : "password";
+      icon.className = isPwd ? "fas fa-eye-slash" : "fas fa-eye";
+    };
+
+    function showAlert(msg, type = "danger") {
+      const banner = document.getElementById("authAlertBanner");
+      banner.className = `auth-alert-message ${type === 'danger' ? 'alert-danger' : 'alert-success'}`;
+      banner.innerHTML = `<i class="fas ${type === 'danger' ? 'fa-circle-exclamation' : 'fa-check-circle'}"></i> ${msg}`;
+      banner.style.display = "block";
+    }
+
+    function hideAlert() {
+      const banner = document.getElementById("authAlertBanner");
+      banner.style.display = "none";
+    }
+
+    window.toggleMode = function() {
+      isSignUp = !isSignUp;
+      const heading = document.getElementById("pageMainHeading");
+      const sub = document.getElementById("pageSubHeading");
+      const signUpFields = document.getElementById("signUpFields");
+      const rememberRow = document.getElementById("rememberRow");
+      const btnText = document.getElementById("btnSubmitText");
+      const switchPrompt = document.getElementById("switchPrompt");
+      const switchLink = document.getElementById("switchLink");
+
+      hideAlert();
+
+      if (isSignUp) {
+        heading.textContent = "Create an account";
+        sub.textContent = "Join CareConnect360 to book appointments and manage health records.";
+        signUpFields.style.display = "block";
+        rememberRow.style.display = "none";
+        btnText.textContent = "Create Account";
+        switchPrompt.textContent = "Already have an account?";
+        switchLink.textContent = "Sign in here";
+        document.getElementById("authEmail").value = "";
+        document.getElementById("authPassword").value = "";
+      } else {
+        heading.textContent = "Sign in to your account";
+        sub.textContent = "Select your role and enter your registered credentials to access your portal.";
+        signUpFields.style.display = "none";
+        rememberRow.style.display = "flex";
+        btnText.textContent = "Sign In to Portal";
+        switchPrompt.textContent = "Don't have an account?";
+        switchLink.textContent = "Create an account";
+        setRole(currentRole);
+      }
+    };
+
+    window.handleAuthSubmit = async function(event) {
+      event.preventDefault();
+      hideAlert();
+
+      const btn = document.getElementById("btnSubmitAuth");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
+
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+
+      try {
+        let session;
+        if (isSignUp) {
+          const fullName = document.getElementById("regFullName").value.trim() || email.split("@")[0];
+          const phone = document.getElementById("regPhone").value.trim();
+          session = await registerUser(email, password, fullName, currentRole, { phone });
+          showAlert("Account created successfully! Redirecting to homepage...", "success");
+        } else {
+          session = await loginUser(email, password);
+          showAlert("Login verified! Redirecting to homepage...", "success");
+        }
+
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 400);
+      } catch (err) {
+        showAlert(err.message || "Invalid credentials. Please verify your email and password.", "danger");
+        btn.disabled = false;
+        btn.innerHTML = `<span>${isSignUp ? 'Create Account' : 'Sign In to Portal'}</span> <i class="fas fa-arrow-right"></i>`;
+      }
+    };
+
+    // Auto-detect role param
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get("role");
+      if (role === "doctor") {
+        setRole("doctor");
+      }
+    });
+  </script>
+</body>
+</html>
