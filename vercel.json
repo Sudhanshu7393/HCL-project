@@ -1,14 +1,26 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "rewrites": [
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{data/**,style.css,*.js,*.html,*.jpg,*.png,*.svg,*.ico,uploads/**}"
+    }
+  },
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/peerjs/(.*)",
-      "destination": "/api/index.js"
+      "src": "/peerjs/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }

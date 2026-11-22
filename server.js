@@ -767,6 +767,8 @@ app.get('/docs', (req, res) => {
 // ==========================================================================
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname)));
+app.use(express.static(process.cwd()));
+app.use(express.static(path.join(__dirname, '..')));
 
 // HTTP Server & PeerJS Real-Time WebRTC Video Signaling Server
 const server = http.createServer(app);
@@ -776,9 +778,33 @@ const peerServer = ExpressPeerServer(server, {
 });
 app.use('/peerjs', peerServer);
 
-// Fallback to index.html for non-API navigations
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// Fallback to index.html ONLY for non-API, non-asset page navigations
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/peerjs')) {
+    return next();
+  }
+  // Prevent returning HTML for CSS/JS/images when not found
+  if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|map|webp|pdf|woff|woff2|ttf|eot)$/i)) {
+    const cleanPath = req.path.replace(/^\//, '');
+    const candidatePaths = [
+      path.join(__dirname, cleanPath),
+      path.join(process.cwd(), cleanPath),
+      path.join(__dirname, '..', cleanPath)
+    ];
+    const resolvedPath = candidatePaths.find(p => fs.existsSync(p));
+    if (resolvedPath) {
+      return res.sendFile(resolvedPath);
+    }
+    return res.status(404).type('text/plain').send('Static asset not found');
+  }
+
+  const indexPath = [
+    path.join(__dirname, 'index.html'),
+    path.join(process.cwd(), 'index.html'),
+    path.join(__dirname, '..', 'index.html')
+  ].find(p => fs.existsSync(p)) || path.join(__dirname, 'index.html');
+
+  res.sendFile(indexPath);
 });
 
 if (require.main === module) {

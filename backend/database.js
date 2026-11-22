@@ -2,7 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
+const SEED_DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
+const DB_PATH = process.env.VERCEL
+  ? path.join('/tmp', 'db.json')
+  : SEED_DB_PATH;
 
 const INITIAL_DOCTORS = [
   {
@@ -123,6 +126,16 @@ const INITIAL_DOCTORS = [
 
 // Initialize database with default demo accounts
 function initDB() {
+  if (process.env.VERCEL && !fs.existsSync(DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
+    try {
+      fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+      fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+      return;
+    } catch (e) {
+      console.warn("Could not copy seed DB to /tmp, fallback to manual init:", e);
+    }
+  }
+
   if (!fs.existsSync(DB_PATH)) {
     const salt = bcrypt.genSaltSync(10);
     const demoPatientPassword = bcrypt.hashSync("Patient@Care360", salt);

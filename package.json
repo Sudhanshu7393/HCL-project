@@ -2,7 +2,7 @@
   "name": "hcl-project",
   "version": "1.0.0",
   "description": "**Domain:** Healthcare Information Technology / Telemedicine & Digital Health   **Target Event:** HCL Campus Innovation Showcase & Viva Evaluation   **Architecture:** Vanilla ES6+ Web Interface, Firebase v10 Modular BaaS (Auth, Firestore, Storage), Agora RTC WebRTC SDK (v4.x), Razorpay Standard Checkout SDK, jsPDF & QRCode.",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/*.test.js"
