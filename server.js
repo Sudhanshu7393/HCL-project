@@ -781,14 +781,18 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`==================================================================`);
-  console.log(` CareConnect360 Full-Stack Healthcare Platform active!`);
-  console.log(` Web App:        http://localhost:${PORT}`);
-  console.log(` REST API Docs:  http://localhost:${PORT}/api/docs`);
-  console.log(` WebRTC Signaling: http://localhost:${PORT}/peerjs`);
-  console.log(` Default Demo Accounts:`);
-  console.log(`   - Patient: patient@careconnect.com  / Password: Patient@Care360`);
-  console.log(`   - Doctor:  doctor@careconnect.com   / Password: Doctor@Care360`);
-  console.log(`==================================================================`);
-});
+if (require.main === module) {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`==================================================================`);
+    console.log(` CareConnect360 Full-Stack Healthcare Platform active!`);
+    console.log(` Web App:        http://localhost:${PORT}`);
+    console.log(` REST API Docs:  http://localhost:${PORT}/api/docs`);
+    console.log(` WebRTC Signaling: http://localhost:${PORT}/peerjs`);
+    console.log(` Default Demo Accounts:`);
+    console.log(`   - Patient: patient@careconnect.com  / Password: Patient@Care360`);
+    console.log(`   - Doctor:  doctor@careconnect.com   / Password: Doctor@Care360`);
+    console.log(`==================================================================`);
+  });
+}
+
+module.exports = app;
