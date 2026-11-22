@@ -2,18 +2,18 @@
   "version": 2,
   "cleanUrls": true,
   "functions": {
-    "api/index.js": {
+    "api/**": {
       "includeFiles": "data/**"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/[...all].js"
     },
     {
       "source": "/peerjs/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/[...all].js"
     }
   ]
 }
