@@ -22,6 +22,50 @@
       "doctorId": "doc-in-101",
       "specialty": "General Physician",
       "createdAt": "2026-09-30T10:15:21.150Z"
+    },
+    {
+      "id": "usr-pat-252277",
+      "email": "test_user_1795372252220@example.com",
+      "passwordHash": "$2b$10$BgcqXAgpetwYOgV.lEOLMui1P1kLJiASaPcTqTMhamEGtveuOW2lS",
+      "fullName": "Test Automation User",
+      "role": "patient",
+      "phone": "+91 9876543210",
+      "specialty": "",
+      "licenseNumber": "",
+      "createdAt": "2026-11-22T18:30:52.277Z"
+    },
+    {
+      "id": "usr-pat-289773",
+      "email": "test_user_1795372289717@example.com",
+      "passwordHash": "$2b$10$vAviSzl.Iui692oeiWuqoOjE/3ty3SgDape2oSJSmUwBT9LwzVKOu",
+      "fullName": "Test Automation User",
+      "role": "patient",
+      "phone": "+91 9876543210",
+      "specialty": "",
+      "licenseNumber": "",
+      "createdAt": "2026-11-22T18:31:29.773Z"
+    },
+    {
+      "id": "usr-pat-329581",
+      "email": "test_user_1795372329520@example.com",
+      "passwordHash": "$2b$10$O1ZEm762Bi79Oq.6dNbQxOFu/13sMp7JhXmyTCZ1PyFzMbP6tMrQW",
+      "fullName": "Test Automation User",
+      "role": "patient",
+      "phone": "+91 9876543210",
+      "specialty": "",
+      "licenseNumber": "",
+      "createdAt": "2026-11-22T18:32:09.581Z"
+    },
+    {
+      "id": "usr-pat-401616",
+      "email": "test_user_1795372401559@example.com",
+      "passwordHash": "$2b$10$141Z7bUpApRByATh26DKkeKlMCDPtlZuOEb1pnhMKS1uaSFka9WZm",
+      "fullName": "Test Automation User",
+      "role": "patient",
+      "phone": "+91 9876543210",
+      "specialty": "",
+      "licenseNumber": "",
+      "createdAt": "2026-11-22T18:33:21.616Z"
     }
   ],
   "doctors": [
@@ -870,6 +914,94 @@
   ],
   "appointments": [
     {
+      "id": "appt-401450",
+      "patientId": "pat-test-02",
+      "doctorId": "doc-in-102",
+      "date": "2026-12-02",
+      "slotTime": "02:00 PM",
+      "status": "completed",
+      "createdAt": "2026-11-22T18:33:21.450Z",
+      "updatedAt": "2026-11-22T18:33:21.451Z"
+    },
+    {
+      "id": "appt-401446",
+      "patientId": "pat-test-01",
+      "patientName": "Test Patient Alpha",
+      "doctorId": "doc-in-101",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "date": "2026-12-01",
+      "slotTime": "11:30 AM",
+      "patientAllergies": "Penicillin",
+      "status": "confirmed",
+      "createdAt": "2026-11-22T18:33:21.446Z"
+    },
+    {
+      "id": "appt-329410",
+      "patientId": "pat-test-02",
+      "doctorId": "doc-in-102",
+      "date": "2026-12-02",
+      "slotTime": "02:00 PM",
+      "status": "completed",
+      "createdAt": "2026-11-22T18:32:09.410Z",
+      "updatedAt": "2026-11-22T18:32:09.411Z"
+    },
+    {
+      "id": "appt-329407",
+      "patientId": "pat-test-01",
+      "patientName": "Test Patient Alpha",
+      "doctorId": "doc-in-101",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "date": "2026-12-01",
+      "slotTime": "11:30 AM",
+      "patientAllergies": "Penicillin",
+      "status": "confirmed",
+      "createdAt": "2026-11-22T18:32:09.407Z"
+    },
+    {
+      "id": "appt-289607",
+      "patientId": "pat-test-02",
+      "doctorId": "doc-in-102",
+      "date": "2026-12-02",
+      "slotTime": "02:00 PM",
+      "status": "completed",
+      "createdAt": "2026-11-22T18:31:29.607Z",
+      "updatedAt": "2026-11-22T18:31:29.609Z"
+    },
+    {
+      "id": "appt-289603",
+      "patientId": "pat-test-01",
+      "patientName": "Test Patient Alpha",
+      "doctorId": "doc-in-101",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "date": "2026-12-01",
+      "slotTime": "11:30 AM",
+      "patientAllergies": "Penicillin",
+      "status": "confirmed",
+      "createdAt": "2026-11-22T18:31:29.603Z"
+    },
+    {
+      "id": "appt-252073",
+      "patientId": "pat-test-02",
+      "doctorId": "doc-in-102",
+      "date": "2026-12-02",
+      "slotTime": "02:00 PM",
+      "status": "completed",
+      "createdAt": "2026-11-22T18:30:52.073Z",
+      "updatedAt": "2026-11-22T18:30:52.074Z"
+    },
+    {
+      "id": "appt-252069",
+      "patientId": "pat-test-01",
+      "patientName": "Test Patient Alpha",
+      "doctorId": "doc-in-101",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "date": "2026-12-01",
+      "slotTime": "11:30 AM",
+      "patientAllergies": "Penicillin",
+      "status": "confirmed",
+      "createdAt": "2026-11-22T18:30:52.069Z"
+    },
+    {
       "id": "appt-551924",
       "patientId": "pat-51921",
       "patientName": "Rahul Sharma",
@@ -1305,6 +1437,110 @@
   ],
   "prescriptions": [
     {
+      "id": "rx-401462",
+      "appointmentId": "APT-401460",
+      "patientName": "Test Patient Verification",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "doctorSpecialty": "General Physician",
+      "doctorLicense": "MCI-42918",
+      "diagnosis": "Acute Pharyngitis",
+      "medicines": [
+        {
+          "name": "Tab. Dolo 650",
+          "dosage": "1-0-1 (SOS)",
+          "timing": "After Meals",
+          "duration": "3 Days"
+        },
+        {
+          "name": "Cap. Pan-D",
+          "dosage": "1-0-0",
+          "timing": "Before Breakfast",
+          "duration": "5 Days"
+        }
+      ],
+      "cdssClearance": "Verified - 0 Allergy Conflicts",
+      "verificationHash": "90998a0847a1220639fb61b4195608199b5a19dd03cdeeda84215063154d4fdb",
+      "createdAt": "2026-11-22T18:33:21.462Z"
+    },
+    {
+      "id": "rx-329419",
+      "appointmentId": "APT-329418",
+      "patientName": "Test Patient Verification",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "doctorSpecialty": "General Physician",
+      "doctorLicense": "MCI-42918",
+      "diagnosis": "Acute Pharyngitis",
+      "medicines": [
+        {
+          "name": "Tab. Dolo 650",
+          "dosage": "1-0-1 (SOS)",
+          "timing": "After Meals",
+          "duration": "3 Days"
+        },
+        {
+          "name": "Cap. Pan-D",
+          "dosage": "1-0-0",
+          "timing": "Before Breakfast",
+          "duration": "5 Days"
+        }
+      ],
+      "cdssClearance": "Verified - 0 Allergy Conflicts",
+      "verificationHash": "6c623362bb55b36321a3ffb5b843c9a28b1592c4b3accaa69b78e8fef7a159b7",
+      "createdAt": "2026-11-22T18:32:09.419Z"
+    },
+    {
+      "id": "rx-289618",
+      "appointmentId": "APT-289617",
+      "patientName": "Test Patient Verification",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "doctorSpecialty": "General Physician",
+      "doctorLicense": "MCI-42918",
+      "diagnosis": "Acute Pharyngitis",
+      "medicines": [
+        {
+          "name": "Tab. Dolo 650",
+          "dosage": "1-0-1 (SOS)",
+          "timing": "After Meals",
+          "duration": "3 Days"
+        },
+        {
+          "name": "Cap. Pan-D",
+          "dosage": "1-0-0",
+          "timing": "Before Breakfast",
+          "duration": "5 Days"
+        }
+      ],
+      "cdssClearance": "Verified - 0 Allergy Conflicts",
+      "verificationHash": "074880b5b1c41a92456cc9da3a779fa0253c94e15ff55ec6d9b726fe4958a576",
+      "createdAt": "2026-11-22T18:31:29.618Z"
+    },
+    {
+      "id": "rx-252082",
+      "appointmentId": "APT-252081",
+      "patientName": "Test Patient Verification",
+      "doctorName": "Dr. Ramesh Chandra Gupta",
+      "doctorSpecialty": "General Physician",
+      "doctorLicense": "MCI-42918",
+      "diagnosis": "Acute Pharyngitis",
+      "medicines": [
+        {
+          "name": "Tab. Dolo 650",
+          "dosage": "1-0-1 (SOS)",
+          "timing": "After Meals",
+          "duration": "3 Days"
+        },
+        {
+          "name": "Cap. Pan-D",
+          "dosage": "1-0-0",
+          "timing": "Before Breakfast",
+          "duration": "5 Days"
+        }
+      ],
+      "cdssClearance": "Verified - 0 Allergy Conflicts",
+      "verificationHash": "25ab5ae9cbe9ea9fd8d9fe0252279e827e6a23c447a860d25f2732d25d55dbaf",
+      "createdAt": "2026-11-22T18:30:52.082Z"
+    },
+    {
       "id": "rx-261890",
       "appointmentId": "appt-261887",
       "patientName": "Rahul Sharma",
@@ -1322,6 +1558,62 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-01450",
+      "userId": "pat-test-02",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with undefined on 2026-12-02 at 02:00 PM. Room: undefined",
+      "createdAt": "2026-11-22T18:33:21.450Z"
+    },
+    {
+      "id": "notif-01447",
+      "userId": "pat-test-01",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with Dr. Ramesh Chandra Gupta on 2026-12-01 at 11:30 AM. Room: undefined",
+      "createdAt": "2026-11-22T18:33:21.447Z"
+    },
+    {
+      "id": "notif-29410",
+      "userId": "pat-test-02",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with undefined on 2026-12-02 at 02:00 PM. Room: undefined",
+      "createdAt": "2026-11-22T18:32:09.410Z"
+    },
+    {
+      "id": "notif-29408",
+      "userId": "pat-test-01",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with Dr. Ramesh Chandra Gupta on 2026-12-01 at 11:30 AM. Room: undefined",
+      "createdAt": "2026-11-22T18:32:09.408Z"
+    },
+    {
+      "id": "notif-89607",
+      "userId": "pat-test-02",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with undefined on 2026-12-02 at 02:00 PM. Room: undefined",
+      "createdAt": "2026-11-22T18:31:29.607Z"
+    },
+    {
+      "id": "notif-89604",
+      "userId": "pat-test-01",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with Dr. Ramesh Chandra Gupta on 2026-12-01 at 11:30 AM. Room: undefined",
+      "createdAt": "2026-11-22T18:31:29.604Z"
+    },
+    {
+      "id": "notif-52073",
+      "userId": "pat-test-02",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with undefined on 2026-12-02 at 02:00 PM. Room: undefined",
+      "createdAt": "2026-11-22T18:30:52.073Z"
+    },
+    {
+      "id": "notif-52070",
+      "userId": "pat-test-01",
+      "type": "sms_and_email",
+      "message": "CareConnect360: Consultation confirmed with Dr. Ramesh Chandra Gupta on 2026-12-01 at 11:30 AM. Room: undefined",
+      "createdAt": "2026-11-22T18:30:52.070Z"
+    },
     {
       "id": "notif-51924",
       "userId": "pat-51921",

@@ -161,6 +161,137 @@
       transition: all 0.3s ease;
     }
 
+    /* CDSS Patient Safety Radar Styles (IEEE SRS FR-3.1) */
+    .cdss-alert-banner {
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.5px;
+      transition: all 0.25s ease;
+    }
+    .cdss-alert-banner.safe {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #166534;
+    }
+    .cdss-alert-banner.safe i { color: #16a34a; font-size: 18px; margin-top: 2px; }
+
+    .cdss-alert-banner.danger {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+      animation: cdssPulse 2s infinite;
+    }
+    .cdss-alert-banner.danger i { color: #dc2626; font-size: 20px; margin-top: 2px; }
+
+    @keyframes cdssPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .cdss-status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cdss-status-badge.safe { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .cdss-status-badge.danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    .allergy-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: #475569;
+      cursor: pointer;
+      margin-right: 4px;
+      margin-bottom: 2px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .allergy-chip.active {
+      background: #fecaca;
+      color: #991b1b;
+      border: 1px solid #f87171;
+    }
+    .allergy-chip:hover {
+      opacity: 0.85;
+    }
+
+    .btn-add-allergy-chip {
+      background: none;
+      border: 1px dashed #94a3b8;
+      color: #475569;
+      border-radius: 4px;
+      font-size: 10px;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-add-allergy-chip:hover {
+      background: #e2e8f0;
+    }
+
+    .cdss-conflict-card {
+      background: #ffffff;
+      border-left: 4px solid #ef4444;
+      border: 1px solid #fca5a5;
+      border-left-width: 5px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+    .cdss-conflict-title {
+      color: #b91c1c;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+    }
+    .cdss-conflict-desc {
+      color: #334155;
+      margin: 4px 0 6px 0;
+      line-height: 1.4;
+    }
+    .cdss-alt-btn {
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      color: #0f766e;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 4px;
+      margin-top: 3px;
+      transition: all 0.15s ease;
+    }
+    .cdss-alt-btn:hover {
+      background: #ccfbf1;
+      border-color: #0d9488;
+    }
+
+    tr.contraindicated-row input.med-name {
+      border: 2px solid #ef4444 !important;
+      background: #fff5f5 !important;
+      color: #b91c1c !important;
+    }
+
     @media (max-width: 900px) {
       body.consultation-viewport { height: auto !important; min-height: 100vh; overflow-y: auto !important; }
       .consultation-navbar { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
@@ -306,14 +437,34 @@
         <div class="tab-pane active" id="tabPrescription">
           <form onsubmit="event.preventDefault(); window.issueSignedPrescription();">
             
-            <!-- In-Call CDSS (Clinical Decision Support System) Drug Safety Box -->
-            <div class="cdss-alert-banner" id="cdssAlertBanner">
-              <i class="fas fa-shield-virus"></i>
-              <div>
-                <strong>CDSS Safety Radar Active:</strong>
-                <span>Patient Sensitivity: <span id="cdssPatientAllergies" style="color: #059669; font-weight: 700;">NKDA (No Known Allergies)</span> &bull; Triage: <span id="cdssTriageBadge" style="color: #0284c7; font-weight: 700;">Level 1 Routine</span></span>
+            <!-- In-Call CDSS (Clinical Decision Support System) Drug Safety Box (IEEE SRS FR-3.1) -->
+            <div class="cdss-alert-banner safe" id="cdssAlertBanner">
+              <i class="fas fa-shield-halved" id="cdssBannerIcon"></i>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                  <strong id="cdssBannerTitle" style="font-weight: 700;">CDSS Drug-Allergy Radar Active</strong>
+                  <span id="cdssStatusPill" class="cdss-status-badge safe">0 Contraindications</span>
+                </div>
+                <div style="margin-top: 5px; font-size: 11.5px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                  <span style="font-weight: 600;">Patient Allergies:</span>
+                  <span id="cdssPatientAllergiesContainer">
+                    <span class="allergy-chip active" data-allergy="Penicillin" onclick="window.togglePatientAllergy && window.togglePatientAllergy('Penicillin')">
+                      <i class="fas fa-shield-virus"></i> Penicillin
+                    </span>
+                    <span class="allergy-chip" data-allergy="NSAIDs" onclick="window.togglePatientAllergy && window.togglePatientAllergy('NSAIDs')">
+                      NSAIDs / Aspirin
+                    </span>
+                    <span class="allergy-chip" data-allergy="Sulfa" onclick="window.togglePatientAllergy && window.togglePatientAllergy('Sulfa')">
+                      Sulfa
+                    </span>
+                  </span>
+                  <button type="button" class="btn-add-allergy-chip" onclick="window.promptAddCustomAllergy && window.promptAddCustomAllergy()" title="Add custom allergy to radar">+ Allergy</button>
+                </div>
               </div>
             </div>
+
+            <!-- Dynamic CDSS Contraindication Warnings Box -->
+            <div id="cdssConflictWarningsContainer" style="display: none; margin-bottom: 12px;"></div>
 
             <div class="rx-field-block">
               <label for="rxDiagnosis">Provisional Clinical Diagnosis (ICD-10 Categorized)</label>

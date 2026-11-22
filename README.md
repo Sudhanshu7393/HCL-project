@@ -165,8 +165,15 @@ d:\HCL Project/
 │   ├── medicines.json                       # Drug formulary & allergy contraindication data
 │   └── lab_tests.json                       # Diagnostic test catalog
 ├── backend/                                 # Enterprise Oracle DDL & relational schema
+│   ├── cdss_radar.js                        # Clinical Decision Support System (CDSS) Drug-Allergy Radar Engine
 │   ├── database.js                          # Local data access layer
 │   └── schema_oracle.sql                    # Production Oracle DB relational tables (3NF)
+├── tests/                                   # Automated Unit & Integration Test Suite (node:test)
+│   ├── cdss_allergy.test.js                 # CDSS Drug-allergy radar & contraindication tests
+│   ├── auth.test.js                         # Bcrypt hashing, registration, login & JWT tests
+│   ├── booking.test.js                      # Slot conflict prevention & double-booking tests
+│   ├── security.test.js                     # Rate limiting, XSS sanitization & password policy
+│   └── prescription.test.js                 # Cryptographic QR hash & tamper-evidence tests
 ├── backend_django/                          # Alternative Django ORM implementation
 └── backend_python/                          # Lightweight Python REST service
 ```
@@ -190,12 +197,19 @@ cd HCL-project
 npm install
 ```
 
-### **3. Start the Server**
+### **3. Run Automated Test Suite (23 Passing Tests)**
 ```bash
-node server.js
+npm test
+```
+> Runs the complete automated test suite verifying Authentication, Booking Conflict Prevention, CDSS Drug-Allergy Radar, Rate Limiting, and Cryptographic e-Prescriptions.
+
+### **4. Start the Server**
+```bash
+npm start
+# or: node server.js
 ```
 
-### **4. Access the Application**
+### **5. Access the Application**
 - 🌐 **Web App:** Open [http://localhost:5500](http://localhost:5500)
 - 📚 **Interactive API Docs:** [http://localhost:5500/api-docs.html](http://localhost:5500/api-docs.html)
 - 📄 **SRS Document Viewer:** [http://localhost:5500/CareConnect360_SRS.html](http://localhost:5500/CareConnect360_SRS.html)

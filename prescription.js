@@ -36,12 +36,217 @@ export async function initRealMedicinesAutocomplete() {
 
         // Attach listeners on existing and template rows
         document.querySelectorAll("#rxMedicineTbody tr").forEach(row => attachRowAutoFill(row));
+        performLiveCdssScreening();
       }
     }
   } catch (err) {
     console.info("Using offline prescription dataset.");
   }
+  performLiveCdssScreening();
 }
+
+// ==============================================================
+// Clinical Decision Support System (CDSS) - Drug Allergy Radar
+// Conforms to IEEE Std 830-1998 SRS Requirement FR-3.1
+// ==============================================================
+
+const CDSS_CLIENT_RULES = [
+  {
+    allergy: "penicillin",
+    drugs: ["amoxicillin", "augmentin", "ampicillin", "penicillin", "piperacillin", "clavulanic", "clavam", "moxikind", "ampiclox"],
+    severity: "CRITICAL",
+    clinicalRisk: "Severe Anaphylaxis, Angioedema, Bronchospasm, and Urticaria",
+    alternatives: ["Azithral 500 (Azithromycin)", "Doxy-1 L (Doxycycline)", "Cefuroxime 500"]
+  },
+  {
+    allergy: "nsaid",
+    drugs: ["aspirin", "ibuprofen", "combiflam", "diclofenac", "voveran", "naproxen", "aceclofenac", "zerodol", "ketorolac", "piroxicam"],
+    severity: "HIGH",
+    clinicalRisk: "Aspirin-Exacerbated Respiratory Disease (AERD), Bronchospasm, and Gastric Ulceration",
+    alternatives: ["Dolo 650 (Paracetamol)", "Ultracet (Tramadol + Paracetamol)"]
+  },
+  {
+    allergy: "sulfa",
+    drugs: ["cotrimoxazole", "septran", "bactrim", "sulfamethoxazole", "sulfadiazine"],
+    severity: "CRITICAL",
+    clinicalRisk: "Stevens-Johnson Syndrome (SJS), Toxic Epidermal Necrolysis, and Hemolytic Crisis",
+    alternatives: ["Cifran 500 (Ciprofloxacin)", "Azithral 500", "Augmentin (if non-penicillin allergic)"]
+  },
+  {
+    allergy: "paracetamol",
+    drugs: ["paracetamol", "acetaminophen", "dolo", "crocin", "calpol", "sumo"],
+    severity: "HIGH",
+    clinicalRisk: "Severe Cutaneous Reactions and Acute Hepatotoxicity",
+    alternatives: ["Combiflam (if non-NSAID allergic)", "Mefenamic Acid", "Cold Compresses"]
+  },
+  {
+    allergy: "quinolone",
+    drugs: ["ciprofloxacin", "cifran", "levofloxacin", "levomac", "ofloxacin", "norfloxacin", "moxifloxacin"],
+    severity: "HIGH",
+    clinicalRisk: "Tendon Rupture, QT Prolongation, and Severe Hypersensitivity",
+    alternatives: ["Azithral 500", "Augmentin 625 DUO", "Cefixime 200"]
+  }
+];
+
+export function getActivePatientAllergies() {
+  const chips = document.querySelectorAll(".allergy-chip.active");
+  const allergies = [];
+  chips.forEach(c => {
+    const text = (c.dataset.allergy || c.textContent).replace(/[^a-zA-Z0-9\s/]/g, "").trim();
+    if (text) allergies.push(text);
+  });
+  return allergies;
+}
+
+export function performLiveCdssScreening() {
+  const allergies = getActivePatientAllergies();
+  const rows = document.querySelectorAll("#rxMedicineTbody tr");
+  const conflicts = [];
+
+  rows.forEach((row, rowIndex) => {
+    const nameInput = row.querySelector(".med-name");
+    if (!nameInput) return;
+    const medName = nameInput.value.trim().toLowerCase();
+    row.classList.remove("contraindicated-row");
+
+    if (!medName || allergies.length === 0) return;
+
+    for (const allergyName of allergies) {
+      const cleanAllergy = allergyName.toLowerCase();
+      if (cleanAllergy.includes("nkda") || cleanAllergy.includes("no known")) continue;
+
+      for (const rule of CDSS_CLIENT_RULES) {
+        if (cleanAllergy.includes(rule.allergy) || rule.allergy.includes(cleanAllergy)) {
+          const matchDrug = rule.drugs.find(d => medName.includes(d));
+          if (matchDrug) {
+            row.classList.add("contraindicated-row");
+            conflicts.push({
+              rowIndex,
+              medicine: nameInput.value.trim(),
+              allergy: allergyName,
+              severity: rule.severity,
+              risk: rule.clinicalRisk,
+              alternatives: rule.alternatives
+            });
+            break;
+          }
+        }
+      }
+    }
+  });
+
+  updateCdssBannerUI(conflicts, allergies);
+  return conflicts;
+}
+
+function updateCdssBannerUI(conflicts, allergies) {
+  const banner = document.getElementById("cdssAlertBanner");
+  const icon = document.getElementById("cdssBannerIcon");
+  const title = document.getElementById("cdssBannerTitle");
+  const pill = document.getElementById("cdssStatusPill");
+  const warningsBox = document.getElementById("cdssConflictWarningsContainer");
+
+  if (!banner) return;
+
+  if (conflicts && conflicts.length > 0) {
+    banner.className = "cdss-alert-banner danger";
+    if (icon) icon.className = "fas fa-triangle-exclamation";
+    if (title) title.textContent = "CRITICAL CONTRAINDICATION ALERT (CDSS Radar)";
+    if (pill) {
+      pill.className = "cdss-status-badge danger";
+      pill.textContent = `${conflicts.length} Active Contraindication${conflicts.length > 1 ? 's' : ''}`;
+    }
+
+    if (warningsBox) {
+      warningsBox.style.display = "block";
+      warningsBox.innerHTML = conflicts.map((c, i) => `
+        <div class="cdss-conflict-card">
+          <div class="cdss-conflict-title">
+            <i class="fas fa-biohazard"></i>
+            <span>[${c.severity}] Drug-Allergy Conflict: "${c.medicine}"</span>
+          </div>
+          <div class="cdss-conflict-desc">
+            Patient has documented <strong>${c.allergy}</strong> sensitivity. Prescribing this risks <strong>${c.risk}</strong>.
+          </div>
+          <div style="margin-top: 6px;">
+            <span style="font-size: 11px; font-weight: 700; color: #475569;">Recommended Safe Alternatives:</span>
+            <div style="margin-top: 4px;">
+              ${c.alternatives.map(alt => `
+                <button type="button" class="cdss-alt-btn" onclick="window.replaceContraindicatedDrug(${c.rowIndex}, '${alt.replace(/'/g, "\\'")}')">
+                  <i class="fas fa-check"></i> Switch to ${alt}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+  } else {
+    banner.className = "cdss-alert-banner safe";
+    if (icon) icon.className = "fas fa-shield-halved";
+    if (title) title.textContent = "CDSS Drug-Allergy Radar Active";
+    if (pill) {
+      pill.className = "cdss-status-badge safe";
+      pill.textContent = "0 Contraindications (Cleared)";
+    }
+    if (warningsBox) {
+      warningsBox.style.display = "none";
+      warningsBox.innerHTML = "";
+    }
+  }
+}
+
+window.replaceContraindicatedDrug = function(rowIndex, newDrugName) {
+  const rows = document.querySelectorAll("#rxMedicineTbody tr");
+  const targetRow = rows[rowIndex];
+  if (targetRow) {
+    const input = targetRow.querySelector(".med-name");
+    if (input) {
+      input.value = newDrugName;
+      targetRow.classList.remove("contraindicated-row");
+      performLiveCdssScreening();
+      if (window.showToast) {
+        window.showToast(`Contraindicated drug replaced with safe alternative: ${newDrugName}`, "success", "CDSS Safety Clearance");
+      }
+    }
+  }
+};
+
+window.togglePatientAllergy = function(allergyName) {
+  const chip = document.querySelector(`.allergy-chip[data-allergy="${allergyName}"]`);
+  if (chip) {
+    chip.classList.toggle("active");
+    performLiveCdssScreening();
+    const isActive = chip.classList.contains("active");
+    if (window.showToast) {
+      window.showToast(`Patient allergy "${allergyName}" ${isActive ? 'activated' : 'cleared'} on CDSS Radar`, isActive ? "warning" : "info", "CDSS Safety Radar");
+    }
+  }
+};
+
+window.promptAddCustomAllergy = function() {
+  const input = prompt("Enter patient drug allergy (e.g. Sulfa, Quinolone, Paracetamol, Aspirin, Penicillin):");
+  if (!input || !input.trim()) return;
+  const name = input.trim();
+  const container = document.getElementById("cdssPatientAllergiesContainer");
+  if (container) {
+    const chip = document.createElement("span");
+    chip.className = "allergy-chip active";
+    chip.dataset.allergy = name;
+    chip.innerHTML = `<i class="fas fa-shield-virus"></i> ${name}`;
+    chip.onclick = () => {
+      chip.classList.toggle("active");
+      performLiveCdssScreening();
+    };
+    container.appendChild(chip);
+    performLiveCdssScreening();
+    if (window.showToast) {
+      window.showToast(`Custom allergy "${name}" registered on CDSS Radar!`, "warning", "CDSS Safety Radar");
+    }
+  }
+};
+
+window.performLiveCdssScreening = performLiveCdssScreening;
 
 function attachRowAutoFill(row) {
   const input = row.querySelector(".med-name");
@@ -49,7 +254,7 @@ function attachRowAutoFill(row) {
   input.dataset.autofillBound = "true";
   input.setAttribute("list", "realMedicinesDatalist");
 
-  input.addEventListener("input", () => {
+  const onMedChange = () => {
     const val = input.value.trim().toLowerCase();
     const matched = realMedicinesCache.find(m => 
       `${m.brandName} (${m.genericName} ${m.strength})`.toLowerCase() === val ||
@@ -71,7 +276,12 @@ function attachRowAutoFill(row) {
       }
       if (durationEl && matched.defaultDuration) durationEl.value = matched.defaultDuration;
     }
-  });
+    // Live CDSS screening on every keystroke/selection
+    performLiveCdssScreening();
+  };
+
+  input.addEventListener("input", onMedChange);
+  input.addEventListener("change", onMedChange);
 }
 
 /**
@@ -111,10 +321,12 @@ export function addMedicineTableRow() {
   // Attach delete event listener
   row.querySelector(".btn-delete-row").addEventListener("click", () => {
     row.remove();
+    performLiveCdssScreening();
   });
 
   attachRowAutoFill(row);
   tbody.appendChild(row);
+  performLiveCdssScreening();
 }
 
 /**
@@ -244,6 +456,23 @@ export async function issueSignedPrescription() {
       { name: "Tab. Dolo 650 (Paracetamol)", dosage: "1-0-1 (SOS)", timing: "After Meals", duration: "3 Days" },
       { name: "Tab. Pantocid 40mg", dosage: "1-0-0", timing: "Before Breakfast", duration: "5 Days" }
     );
+  }
+
+  // Pre-Signature CDSS Drug-Allergy Safety Check (IEEE SRS FR-3.1)
+  const conflicts = performLiveCdssScreening();
+  if (conflicts && conflicts.length > 0) {
+    const override = confirm(
+      `⚠️ CDSS PATIENT SAFETY RADAR WARNING:\n\n` +
+      `The following medication(s) violate patient documented allergies:\n` +
+      conflicts.map(c => `• ${c.medicine} -> ${c.allergy} (${c.severity} Risk: ${c.risk})`).join('\n') +
+      `\n\nDo you want to apply clinical override and proceed, or cancel to replace with recommended alternatives?`
+    );
+    if (!override) {
+      if (window.showToast) {
+        window.showToast("Prescription issuance paused. Please replace contraindicated drugs using CDSS suggestions.", "warning", "CDSS Safety Radar");
+      }
+      return;
+    }
   }
 
   // Retrieve Doctor and Patient details
